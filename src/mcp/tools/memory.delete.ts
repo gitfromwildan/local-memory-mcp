@@ -12,12 +12,30 @@ export async function handleMemoryDelete(
 ): Promise<McpResponse> {
 	// Validate input
 	const validated = MemoryDeleteSchema.parse(params);
-	const { id, ids, repo, structured } = validated;
-	const targetIds = ids || (id ? [id] : []);
+	const { id, ids, code, codes, repo, structured } = validated;
 
-	if (targetIds.length === 0) {
-		throw new Error("Either 'id' or 'ids' must be provided for deletion");
+	// Resolve code(s) to id(s)
+	const resolvedIds: string[] = [];
+	if (ids) resolvedIds.push(...ids);
+	if (id) resolvedIds.push(id);
+	if (code) {
+		const entry = db.memories.getByCode(code);
+		if (!entry) throw new Error(`Memory not found: ${code}`);
+		resolvedIds.push(entry.id);
 	}
+	if (codes) {
+		for (const c of codes) {
+			const entry = db.memories.getByCode(c);
+			if (!entry) throw new Error(`Memory not found: ${c}`);
+			resolvedIds.push(entry.id);
+		}
+	}
+
+	if (resolvedIds.length === 0) {
+		throw new Error("Either 'id', 'ids', 'code', or 'codes' must be provided for deletion");
+	}
+
+	const targetIds = resolvedIds;
 
 	let deletedCount = 0;
 	const deletedCodes: string[] = [];

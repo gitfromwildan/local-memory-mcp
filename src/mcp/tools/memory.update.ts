@@ -17,10 +17,20 @@ export async function handleMemoryUpdate(
 	// Validate input
 	const validated = MemoryUpdateSchema.parse(params);
 
+	// Resolve code to id if needed
+	let resolvedId = validated.id;
+	if (!resolvedId && validated.code) {
+		const byCode = db.memories.getByCode(validated.code);
+		if (!byCode) throw new Error(`Memory not found: ${validated.code}`);
+		resolvedId = byCode.id;
+	} else if (!resolvedId) {
+		throw new Error("Either id or code must be provided");
+	}
+
 	// Check if memory exists
-	const existing = db.memories.getById(validated.id);
+	const existing = db.memories.getById(resolvedId);
 	if (!existing) {
-		throw new Error(`Memory not found: ${validated.id}`);
+		throw new Error(`Memory not found: ${resolvedId}`);
 	}
 
 	// Repository Mismatch Check: If repo is provided in args, it MUST match the entry's repo
@@ -52,25 +62,26 @@ export async function handleMemoryUpdate(
 	if (validated.is_global !== undefined) updates.is_global = validated.is_global;
 	if (validated.completed_at !== undefined) updates.completed_at = validated.completed_at;
 
-	db.memories.update(validated.id, updates);
+	db.memories.update(resolvedId, updates);
 
 	// Update vector if content changed
 	if (validated.content !== undefined) {
-		await vectors.upsert(validated.id, validated.content);
+		await vectors.upsert(resolvedId, validated.content);
 	}
 
 	// Log the update action
-	db.actions.logAction("update", existing.scope.repo, { memoryId: validated.id, resultCount: 1 });
-	logger.info("[Tool] memory.update", { repo: existing.scope.repo, id: validated.id, fields: Object.keys(updates) });
+	db.actions.logAction("update", existing.scope.repo, { memoryId: resolvedId, resultCount: 1 });
+	logger.info("[Tool] memory.update", { repo: existing.scope.repo, id: resolvedId, fields: Object.keys(updates) });
 
 	return createMcpResponse(
 		{
 			success: true,
-			id: validated.id,
+			id: resolvedId,
+			code: existing.code,
 			repo: existing.scope.repo,
 			updatedFields: Object.keys(updates)
 		},
-		`Updated memory ${validated.id} in repo "${existing.scope.repo}". Fields: ${Object.keys(updates).join(", ") || "none"}.`,
+		`Updated memory ${resolvedId} in repo "${existing.scope.repo}". Fields: ${Object.keys(updates).join(", ") || "none"}.`,
 		{
 			structuredContentPathHint: "updatedFields",
 			includeSerializedStructuredContent: validated.structured

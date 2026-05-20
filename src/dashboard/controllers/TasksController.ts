@@ -135,7 +135,9 @@ export class TasksController {
 					toolArgs.est_tokens = existingTask.est_tokens || 0;
 				}
 				if (toolArgs.commit_id === undefined) {
-					toolArgs.commit_id = existingTask.commit_id || null;
+					if (existingTask.commit_id) {
+						toolArgs.commit_id = existingTask.commit_id;
+					}
 				}
 				if (toolArgs.changed_files === undefined) {
 					toolArgs.changed_files = existingTask.changed_files || [];

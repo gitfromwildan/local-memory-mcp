@@ -697,12 +697,23 @@ export async function handleTaskUpdate(args: unknown, storage: SQLiteStore, vect
 
 export async function handleTaskDelete(args: unknown, storage: SQLiteStore) {
 	const validated = TaskDeleteSchema.parse(args);
-	const { repo, id, ids } = validated;
-	const targetIds = ids || (id ? [id] : []);
+	const { repo, id, ids, task_code } = validated;
 
-	if (targetIds.length === 0) {
-		throw new Error("Either 'id' or 'ids' must be provided for deletion");
+	// Resolve task_code to id if needed
+	const resolvedIds: string[] = [];
+	if (ids) resolvedIds.push(...ids);
+	if (id) resolvedIds.push(id);
+	if (task_code) {
+		const task = storage.tasks.getTaskByCode(repo, task_code);
+		if (!task) throw new Error(`Task not found: ${task_code}`);
+		resolvedIds.push(task.id);
 	}
+
+	if (resolvedIds.length === 0) {
+		throw new Error("Either 'id', 'ids', or 'task_code' must be provided for deletion");
+	}
+
+	const targetIds = resolvedIds;
 
 	for (const targetId of targetIds) {
 		storage.tasks.deleteTask(targetId);

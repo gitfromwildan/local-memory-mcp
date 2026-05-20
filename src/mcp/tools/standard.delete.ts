@@ -10,12 +10,30 @@ export async function handleStandardDelete(
 	vectors: VectorStore
 ): Promise<McpResponse> {
 	const validated = StandardDeleteSchema.parse(params);
-	const { id, ids, repo, structured } = validated;
-	const targetIds = ids || (id ? [id] : []);
+	const { id, ids, code, codes, repo, structured } = validated;
 
-	if (targetIds.length === 0) {
-		throw new Error("Either 'id' or 'ids' must be provided for deletion");
+	// Resolve code(s) to id(s)
+	const resolvedIds: string[] = [];
+	if (ids) resolvedIds.push(...ids);
+	if (id) resolvedIds.push(id);
+	if (code) {
+		const entry = db.standards.getByCode(code);
+		if (!entry) throw new Error(`Coding standard not found: ${code}`);
+		resolvedIds.push(entry.id);
 	}
+	if (codes) {
+		for (const c of codes) {
+			const entry = db.standards.getByCode(c);
+			if (!entry) throw new Error(`Coding standard not found: ${c}`);
+			resolvedIds.push(entry.id);
+		}
+	}
+
+	if (resolvedIds.length === 0) {
+		throw new Error("Either 'id', 'ids', 'code', or 'codes' must be provided for deletion");
+	}
+
+	const targetIds = resolvedIds;
 
 	let deletedCount = 0;
 	const deletedTitles: string[] = [];

@@ -32,7 +32,8 @@ export const MemoryStoreSchema = z.object({
 
 export const MemoryUpdateSchema = z
 	.object({
-		id: z.string().uuid(),
+		id: z.string().uuid().optional(),
+		code: z.string().max(20).optional(),
 		type: MemoryTypeSchema.optional(),
 		title: z.string().min(3).max(255).optional(),
 		content: z.string().min(10).optional(),
@@ -46,6 +47,9 @@ export const MemoryUpdateSchema = z
 		is_global: z.boolean().optional(),
 		completed_at: z.string().optional(),
 		structured: z.boolean().default(false)
+	})
+	.refine((data) => data.id !== undefined || data.code !== undefined, {
+		message: "Either id or code must be provided"
 	})
 	.refine(
 		(data) =>
@@ -80,12 +84,17 @@ export const MemorySearchSchema = z.object({
 	structured: z.boolean().default(false)
 });
 
-export const MemoryAcknowledgeSchema = z.object({
-	memory_id: z.string().uuid(),
-	status: z.enum(["used", "irrelevant", "contradictory"]),
-	application_context: z.string().min(10).optional(),
-	structured: z.boolean().default(false)
-});
+export const MemoryAcknowledgeSchema = z
+	.object({
+		memory_id: z.string().uuid().optional(),
+		code: z.string().max(20).optional(),
+		status: z.enum(["used", "irrelevant", "contradictory"]),
+		application_context: z.string().min(10).optional(),
+		structured: z.boolean().default(false)
+	})
+	.refine((data) => data.memory_id !== undefined || data.code !== undefined, {
+		message: "Either memory_id or code must be provided"
+	});
 
 export const MemoryRecapSchema = z.object({
 	repo: z.string().min(1).transform(normalizeRepo),
@@ -99,10 +108,12 @@ export const MemoryDeleteSchema = z
 		repo: z.string().min(1).transform(normalizeRepo).optional(),
 		id: z.string().uuid().optional(),
 		ids: z.array(z.string().uuid()).min(1).optional(),
+		code: z.string().max(20).optional(),
+		codes: z.array(z.string().max(20)).min(1).optional(),
 		structured: z.boolean().default(false)
 	})
-	.refine((data) => data.id !== undefined || data.ids !== undefined, {
-		message: "Either 'id' or 'ids' must be provided for deletion"
+	.refine((data) => data.id !== undefined || data.ids !== undefined || data.code !== undefined || data.codes !== undefined, {
+		message: "Either 'id', 'ids', 'code', or 'codes' must be provided for deletion"
 	});
 
 export const MemorySummarizeSchema = z.object({
@@ -235,10 +246,11 @@ export const TaskDeleteSchema = z
 		repo: z.string().min(1).transform(normalizeRepo),
 		id: z.string().uuid().optional(),
 		ids: z.array(z.string().uuid()).min(1).optional(),
+		task_code: z.string().optional(),
 		structured: z.boolean().default(false)
 	})
-	.refine((data) => data.id !== undefined || data.ids !== undefined, {
-		message: "Either 'id' or 'ids' must be provided for deletion"
+	.refine((data) => data.id !== undefined || data.ids !== undefined || data.task_code !== undefined, {
+		message: "Either 'id', 'ids', or 'task_code' must be provided for deletion"
 	});
 
 export const MemoryDetailSchema = z
@@ -266,10 +278,12 @@ export const StandardDeleteSchema = z
 		repo: z.string().min(1).transform(normalizeRepo).optional(),
 		id: z.string().uuid().optional(),
 		ids: z.array(z.string().uuid()).min(1).optional(),
+		code: z.string().max(20).optional(),
+		codes: z.array(z.string().max(20)).min(1).optional(),
 		structured: z.boolean().default(false)
 	})
-	.refine((data) => data.id !== undefined || data.ids !== undefined, {
-		message: "Either 'id' or 'ids' must be provided for deletion"
+	.refine((data) => data.id !== undefined || data.ids !== undefined || data.code !== undefined || data.codes !== undefined, {
+		message: "Either 'id', 'ids', 'code', or 'codes' must be provided for deletion"
 	});
 
 export const TaskGetSchema = z
@@ -397,7 +411,8 @@ export const StandardStoreSchema = z
 
 export const StandardUpdateSchema = z
 	.object({
-		id: z.string().uuid(),
+		id: z.string().uuid().optional(),
+		code: z.string().max(20).optional(),
 		name: z.string().min(3).max(255).optional(),
 		content: z.string().min(10).optional(),
 		parent_id: z.string().uuid().nullable().optional(),
@@ -415,6 +430,9 @@ export const StandardUpdateSchema = z
 		agent: z.string().optional(),
 		model: z.string().optional(),
 		structured: z.boolean().default(false)
+	})
+	.refine((data) => data.id !== undefined || data.code !== undefined, {
+		message: "Either id or code must be provided"
 	})
 	.refine(
 		(data) =>
@@ -715,12 +733,13 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				memory_id: { type: "string", format: "uuid" },
+				memory_id: { type: "string", format: "uuid", description: "Memory entry ID. Optional if code is provided." },
+				code: { type: "string", maxLength: 20, description: "Short memory code. Optional if memory_id is provided." },
 				status: { type: "string", enum: ["used", "irrelevant", "contradictory"] },
 				application_context: { type: "string", minLength: 10 },
 				structured: { type: "boolean", default: false, description: "If true, returns structured JSON result." }
 			},
-			required: ["memory_id", "status"]
+			required: ["status"]
 		},
 		outputSchema: {
 			type: "object",
@@ -746,7 +765,8 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				id: { type: "string", format: "uuid" },
+				id: { type: "string", format: "uuid", description: "Memory entry ID. Optional if code is provided." },
+				code: { type: "string", maxLength: 20, description: "Short memory code. Optional if id is provided." },
 				type: {
 					type: "string",
 					enum: ["code_fact", "decision", "mistake", "pattern", "task_archive"]
@@ -767,21 +787,21 @@ export const TOOL_DEFINITIONS = [
 					default: false,
 					description: "If true, returns structured JSON of the updated memory."
 				}
-			},
-			required: ["id"]
+			}
 		},
 		outputSchema: {
 			type: "object",
 			properties: {
 				success: { type: "boolean" },
 				id: { type: "string" },
+				code: { type: "string" },
 				repo: { type: "string" },
 				updatedFields: {
 					type: "array",
 					items: { type: "string" }
 				}
 			},
-			required: ["success", "id", "repo", "updatedFields"]
+			required: ["success", "repo", "updatedFields"]
 		}
 	},
 	{
@@ -912,12 +932,19 @@ export const TOOL_DEFINITIONS = [
 			type: "object",
 			properties: {
 				repo: { type: "string", description: "Repository name (optional for single id)" },
-				id: { type: "string", format: "uuid", description: "Memory entry ID to delete" },
+				id: { type: "string", format: "uuid", description: "Memory entry ID to delete. Optional if code is provided." },
 				ids: {
 					type: "array",
 					items: { type: "string", format: "uuid" },
 					minItems: 1,
 					description: "Array of memory IDs to delete"
+				},
+				code: { type: "string", maxLength: 20, description: "Short memory code. Optional if id is provided." },
+				codes: {
+					type: "array",
+					items: { type: "string", maxLength: 20 },
+					minItems: 1,
+					description: "Array of memory codes to delete"
 				},
 				structured: { type: "boolean", default: false, description: "If true, returns structured JSON result." }
 			}
@@ -927,7 +954,9 @@ export const TOOL_DEFINITIONS = [
 			properties: {
 				success: { type: "boolean" },
 				id: { type: "string" },
+				code: { type: "string" },
 				ids: { type: "array", items: { type: "string" } },
+				codes: { type: "array", items: { type: "string" } },
 				repo: { type: "string" },
 				deletedCount: { type: "number" }
 			},
@@ -948,12 +977,19 @@ export const TOOL_DEFINITIONS = [
 			type: "object",
 			properties: {
 				repo: { type: "string", description: "Repository name (optional for single id)" },
-				id: { type: "string", format: "uuid", description: "Coding standard ID to delete" },
+				id: { type: "string", format: "uuid", description: "Coding standard ID to delete. Optional if code is provided." },
 				ids: {
 					type: "array",
 					items: { type: "string", format: "uuid" },
 					minItems: 1,
 					description: "Array of coding standard IDs to delete"
+				},
+				code: { type: "string", maxLength: 20, description: "Short standard code. Optional if id is provided." },
+				codes: {
+					type: "array",
+					items: { type: "string", maxLength: 20 },
+					minItems: 1,
+					description: "Array of standard codes to delete"
 				},
 				structured: { type: "boolean", default: false, description: "If true, returns structured JSON result." }
 			}
@@ -963,7 +999,9 @@ export const TOOL_DEFINITIONS = [
 			properties: {
 				success: { type: "boolean" },
 				id: { type: "string" },
+				code: { type: "string" },
 				ids: { type: "array", items: { type: "string" } },
+				codes: { type: "array", items: { type: "string" } },
 				repo: { type: "string" },
 				deletedCount: { type: "number" }
 			},
@@ -1249,8 +1287,9 @@ export const TOOL_DEFINITIONS = [
 			type: "object",
 			properties: {
 				repo: { type: "string", description: "Repository name" },
-				id: { type: "string", format: "uuid", description: "Task ID (for single deletion)" },
+				id: { type: "string", format: "uuid", description: "Task ID (for single deletion). Optional if task_code is provided." },
 				ids: { type: "array", items: { type: "string", format: "uuid" }, description: "Task IDs (for bulk deletion)" },
+				task_code: { type: "string", description: "Task code (e.g. TASK-001). Optional if id is provided." },
 				structured: { type: "boolean", default: false, description: "If true, returns structured JSON result." }
 			},
 			required: ["repo"]
@@ -1260,6 +1299,7 @@ export const TOOL_DEFINITIONS = [
 			properties: {
 				success: { type: "boolean" },
 				id: { type: "string" },
+				task_code: { type: "string" },
 				ids: { type: "array", items: { type: "string" } },
 				repo: { type: "string" },
 				deletedCount: { type: "number" }
@@ -1718,7 +1758,8 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				id: { type: "string", description: "Standard ID to update" },
+				id: { type: "string", format: "uuid", description: "Standard ID to update. Optional if code is provided." },
+				code: { type: "string", maxLength: 20, description: "Short standard code. Optional if id is provided." },
 				name: { type: "string", minLength: 3, maxLength: 255 },
 				content: { type: "string", minLength: 10 },
 				parent_id: { type: "string", format: "uuid", nullable: true },
@@ -1733,8 +1774,7 @@ export const TOOL_DEFINITIONS = [
 				agent: { type: "string" },
 				model: { type: "string" },
 				structured: { type: "boolean", default: false }
-			},
-			required: ["id"]
+			}
 		},
 		outputSchema: {
 			type: "object",

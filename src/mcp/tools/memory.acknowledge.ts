@@ -7,10 +7,20 @@ export async function handleMemoryAcknowledge(params: unknown, db: SQLiteStore):
 	// Validate input
 	const validated = MemoryAcknowledgeSchema.parse(params);
 
+	// Resolve code to id
+	let memoryId = validated.memory_id;
+	if (!memoryId && validated.code) {
+		const byCode = db.memories.getByCode(validated.code);
+		if (!byCode) throw new Error(`Memory not found: ${validated.code}`);
+		memoryId = byCode.id;
+	} else if (!memoryId) {
+		throw new Error("Either memory_id or code must be provided");
+	}
+
 	// Check if memory exists
-	const memory = db.memories.getById(validated.memory_id);
+	const memory = db.memories.getById(memoryId);
 	if (!memory) {
-		throw new Error(`Memory with ID ${validated.memory_id} not found.`);
+		throw new Error(`Memory with ID ${memoryId} not found.`);
 	}
 
 	// Update statistics based on status

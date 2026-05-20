@@ -12,9 +12,19 @@ export async function handleStandardUpdate(
 ): Promise<McpResponse> {
 	const validated = StandardUpdateSchema.parse(params);
 
-	const existing = db.standards.getById(validated.id);
+	// Resolve code to id if needed
+	let resolvedId = validated.id;
+	if (!resolvedId && validated.code) {
+		const byCode = db.standards.getByCode(validated.code);
+		if (!byCode) throw new Error(`Coding standard not found: ${validated.code}`);
+		resolvedId = byCode.id;
+	} else if (!resolvedId) {
+		throw new Error("Either id or code must be provided");
+	}
+
+	const existing = db.standards.getById(resolvedId);
 	if (!existing) {
-		throw new Error(`Coding standard not found: ${validated.id}`);
+		throw new Error(`Coding standard not found: ${resolvedId}`);
 	}
 
 	const updates: Partial<CodingStandardEntry> = {};
@@ -32,7 +42,7 @@ export async function handleStandardUpdate(
 	if (validated.agent !== undefined) updates.agent = validated.agent;
 	if (validated.model !== undefined) updates.model = validated.model;
 
-	db.standards.update(validated.id, updates);
+	db.standards.update(resolvedId, updates);
 
 	const merged: CodingStandardEntry = {
 		...existing,
@@ -50,21 +60,22 @@ export async function handleStandardUpdate(
 		validated.tags !== undefined ||
 		validated.metadata !== undefined
 	) {
-		await vectors.upsert(validated.id, buildStandardVectorText(merged), "standard");
+		await vectors.upsert(resolvedId, buildStandardVectorText(merged), "standard");
 	}
 
 	logger.info("[Tool] standard.update - updated coding standard", {
-		standardId: validated.id,
+		standardId: resolvedId,
 		fields: Object.keys(updates)
 	});
 
 	return createMcpResponse(
 		{
 			success: true,
-			id: validated.id,
+			id: resolvedId,
+			code: existing.code,
 			updatedFields: Object.keys(updates)
 		},
-		`Updated coding standard ${validated.id}. Fields: ${Object.keys(updates).join(", ") || "none"}.`,
+		`Updated coding standard ${resolvedId}. Fields: ${Object.keys(updates).join(", ") || "none"}.`,
 		{
 			structuredContentPathHint: "updatedFields",
 			includeSerializedStructuredContent: true
