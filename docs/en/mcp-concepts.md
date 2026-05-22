@@ -118,6 +118,25 @@ Resources provide read-only access to specialized data views and global knowledg
 
 Prompts are predefined instruction templates that guide model interactions.
 
+### Known Limitation: MCP Prompt Support by Agent
+
+Not all coding agents support MCP **prompts** (the capability to list/get prompt templates). Below is the compatibility matrix:
+
+| Agent | MCP Prompts | Notes |
+|-------|------------|-------|
+| Claude Desktop | ✅ Supported | Prompts appear as slash commands |
+| Claude Code | ✅ Supported | Invoked as `/mcp__servername__promptname` |
+| Cursor | ✅ Supported | Prompts supported, Resources NOT supported |
+| Windsurf | ✅ Supported | All three: Tools, Prompts, Resources |
+| GitHub Copilot (VS Code) | ✅ Supported | Use `/<server>.<prompt>` in chat |
+| Continue.dev | ✅ Supported | Surfaces as slash commands in agent mode |
+| Zed | ✅ Supported | As slash commands |
+| Gemini CLI | ✅ Supported | |
+| **Codex CLI (OpenAI)** | ❌ **Not Supported** | Only Tools + Resources |
+| Cline | ❌ Not Supported | Only Tools + Resources |
+
+If your agent doesn't support prompts, you can still invoke the equivalent behavior via **Tools** (e.g., `memory-agent-core` instructions can be manually prompted), or trigger prompts through the **Dashboard** UI.
+
 ### Core Lifecycle Prompts
 - **`memory-agent-core`**: Essential behavioral contract for any memory-aware agent.
 - **`project-briefing`**: Onboarding template for starting a new session in a repository.

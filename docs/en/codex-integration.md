@@ -287,6 +287,18 @@ approval_mode = "prompt"
 
 ---
 
+## Known Limitations
+
+### MCP Prompts Not Supported
+
+Codex CLI does **not** support MCP **prompts** (the `prompts/list` and `prompts/get` capabilities). This means prompt templates like `memory-agent-core`, `project-briefing`, or `task-orchestrator` cannot be invoked as slash commands in Codex.
+
+However, **Tools** and **Resources** work fully. You can still use the server's tools directly (e.g., `memory-store`, `memory-search`, `task-list`) — only the predefined prompt templates are unavailable.
+
+For agents with full prompt support, see [MCP Protocol Reference](mcp-concepts.md).
+
+---
+
 ## Troubleshooting for Codex
 
 ### Server not found
