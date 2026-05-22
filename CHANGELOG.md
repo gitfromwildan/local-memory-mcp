@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-05-22
+
+### Added
+
+- **Ecosystem Section**: Added "Ecosystem" as a Reference category filter with TopBar navigation and dedicated section showing partner tools (Docubook).
+- **FloatingChat**: Replaced QuickCreateFAB with a WhatsApp-style floating chat popup (380x560px) for quick backlog task creation.
+- **Chat Input**: Added send panel to Activity tab for creating backlog tasks directly from chat input.
+- **Donation Link**: Added coffee/donation link (teer.id) to TopBar external links group.
+- **Handoffs Redesign**: Redesigned handoffs as a table (From, To, Task, Summary, Status, Created, Expires) with slide-over DetailDrawer, matching Standards/Memory pattern.
+- **Security & Entity Refactoring**: Security fixes, entity refactoring, WriteLock improvements, StubVectorStore fallback, task-search tool, ttlDays fix.
+
+### Changed
+
+- **Sidebar Navigation**: Moved global nav (Agent Arena, Dashboard, Standards, Reference) to sidebar above Repositories; tab bar stays visible regardless of active sidebar nav tab.
+
+### Fixed
+
+- **Chat Flow**: Chat input now stores message in description while title is auto-generated (Chat · HH:mm); full refresh triggered after send.
+- **Reference Tab**: Fixed not loading when clicked from sidebar nav by watching `$app.tab` reactively.
+- **Standards Drawer**: Fixed not opening due to null `selectedStandard` — using sentinel object for mode detection.
+- **Table Background**: Added solid background to tables to prevent transparency issues.
+- **Svelte 5**: Replaced `bind:value` with `value + on:input` for Svelte 5 compatibility.
+- **Sidebar Scroll**: Fixed scroll visibility and handoff loading stuck issue.
+- **Misc**: Changed "Donasi" to "Donate" in TopBar; added taskStats/taskComments mocks to router tests.
+
+## [0.13.2] - 2026-05-20
+
+### Added
+
+- **Code-based Lookup**: Added optional `code` param to `memory-update`, `memory-delete`, `memory-acknowledge`, `standard-update`, `standard-delete` tools.
+- **Task Code Lookup**: Added optional `task_code` param to `task-delete` tool.
+
+### Fixed
+
+- Fixed pre-existing bug in `TasksController` passing null `commit_id` to Zod schema.
+
+## [0.13.1] - 2026-05-14
+
+### Changed
+
+- **Task Executor**: Replaced weak `Repeat` step with `Loop → CONTINUOUS EXECUTION MODE` — agent now loops through pending/backlog/stale/handoff until queue is truly empty.
+
+## [0.13.0] - 2026-05-11
+
+### Added
+
+- **Task Git Traceability**: Added `commit_id` and `changed_files` columns to tasks table for git commit traceability.
+- **task-update**: Schema now accepts optional `commit_id` (string) and `changed_files` (string array) when marking tasks as completed.
+- **Task Archive**: Archived memory now includes commit hash and changed files list.
+
 ## [0.12.1] - 2026-05-10
 
 ### Changed
