@@ -440,6 +440,7 @@
 		overflow-x: auto;
 		border-radius: 14px;
 		border: 1px solid var(--color-border);
+		background: var(--color-surface, #fff);
 	}
 
 	.mem-table {
