@@ -30,6 +30,35 @@
 	let kanbanBoard: KanbanBoard;
 	let memoryList: MemoryList;
 
+	let chatMessage = "";
+	let isSendingChat = false;
+
+	async function sendChat() {
+		const msg = chatMessage.trim();
+		if (!msg || isSendingChat) return;
+		const repo = get(currentRepo);
+		if (!repo) return;
+		isSendingChat = true;
+		try {
+			const taskCode = "CHAT-" + Date.now().toString(36).toUpperCase();
+			await api.createTask({
+				repo,
+				task_code: taskCode,
+				title: msg.length > 100 ? msg.substring(0, 97) + "..." : msg,
+				status: "backlog",
+				priority: 3,
+				phase: "Inbox"
+			});
+			chatMessage = "";
+			await app.loadRecentActions(1, false);
+			kanbanBoard?.loadTasks(repo);
+		} catch (e) {
+			console.error("Failed to create task from chat:", e);
+		} finally {
+			isSendingChat = false;
+		}
+	}
+
 	// Init app handler, passing component refs
 	const app = createAppHandler({
 		get kanbanBoard() {
@@ -216,8 +245,21 @@
 								</div>
 							</div>
 						</div>
-						<div style="flex:1;overflow-y:auto;padding:24px 32px;background:rgba(0,0,0,0.02);">
-							<RecentActions onLoadPage={app.loadRecentActions} />
+						<RecentActions onLoadPage={app.loadRecentActions} />
+						<div class="chat-send-panel">
+							<div class="chat-input-row">
+								<input
+									type="text"
+									placeholder="Type a message to create a backlog task..."
+									value={chatMessage}
+									on:input={(e) => chatMessage = e.currentTarget.value}
+									on:keydown={(e) => e.key === "Enter" && !e.shiftKey && sendChat()}
+									disabled={isSendingChat}
+								/>
+								<button class="chat-send-btn" on:click={sendChat} disabled={!chatMessage.trim() || isSendingChat}>
+									<Icon name="send" size={16} strokeWidth={2} />
+								</button>
+							</div>
 						</div>
 					</div>
 				{/if}
