@@ -20,7 +20,7 @@
 	import BulkImportModal from "./components/BulkImportModal.svelte";
 	import AddTaskModal from "./components/AddTaskModal.svelte";
 	import ReferenceTab from "./components/ReferenceTab.svelte";
-	import QuickCreateFAB from "./components/QuickCreateFAB.svelte";
+	import FloatingChat from "./components/FloatingChat.svelte";
 	import StandardsPanel from "./components/StandardsPanel.svelte";
 	import HandoffsPanel from "./components/HandoffsPanel.svelte";
 	import AgentArena from "./components/AgentArena.svelte";
@@ -370,7 +370,7 @@
 />
 
 <!-- ════ Quick Create FAB ════ -->
-<QuickCreateFAB onNewMemory={app.openNewMemoryDrawer} onNewTask={() => app.toggleAddTaskModal(true)} />
+<FloatingChat />
 
 <style>
 	@media (max-width: 900px) {
