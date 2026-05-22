@@ -48,18 +48,16 @@
 		await app.loadRepos();
 		await app.loadHealth();
 		await app.loadData();
-		const tab = $activeTab;
-		if (tab === "reference") {
-			if (!get(app).capabilities) {
-				try {
-					const cap = await api.capabilities();
-					app.update((curr) => ({ ...curr, capabilities: cap }));
-				} catch (err) {
-					console.error("Failed to load capabilities:", err);
-				}
-			}
-		}
 	});
+
+	$: if ($activeTab === "reference") {
+		const s = get(app);
+		if (!s.capabilities) {
+			api.capabilities()
+				.then((cap) => app.update((curr) => ({ ...curr, capabilities: cap })))
+				.catch((err) => console.error("Failed to load capabilities:", err));
+		}
+	}
 </script>
 
 <svelte:window on:keydown={app.onKeyDown} />
