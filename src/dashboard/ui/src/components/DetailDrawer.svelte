@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Memory, Task } from "../lib/stores";
+	import type { Memory, Task, CodingStandard } from "../lib/stores";
 	import { formatDate, getStatusColor, getStatusLabel, getPriorityLabel } from "../lib/utils";
 	import Icon from "../lib/Icon.svelte";
 	import Markdown from "./Markdown.svelte";
@@ -8,10 +8,14 @@
 	// ─── Props ───────────────────────────────────────────────────────────────────
 	export let memory: Memory | null = null;
 	export let task: Task | null = null;
+	export let standard: CodingStandard | null = null;
 	export let open = false;
 	export let onClose: () => void = () => {};
 	export let onTaskUpdated: (task: Task) => void = () => {};
 	export let onTaskDeleted: (id: string) => void = () => {};
+	export let onStandardUpdated: (standard: CodingStandard) => void = () => {};
+	export let onStandardDeleted: (id: string) => void = () => {};
+	export let repo: string | null = null;
 
 	const handler = createDetailHandler();
 	const { mode } = handler;
@@ -20,6 +24,7 @@
 	$: if (open) {
 		handler.setMemory(memory);
 		handler.setTask(task);
+		handler.setStandard(standard);
 	} else {
 		handler.reset();
 	}
@@ -402,6 +407,173 @@
 						</div>
 					{/if}
 				</div>
+			{/if}
+
+			<!-- ══ STANDARD MODE ══ -->
+			{#if $mode === "standard"}
+				{#if $handler.standardError}
+					<div
+						style="border:1px solid #fecaca;background:#fef2f2;color:#dc2626;border-radius:8px;padding:10px 12px;font-size:0.82rem;font-weight:700;margin-bottom:12px;"
+					>
+						{$handler.standardError}
+					</div>
+				{/if}
+
+				{#if $handler.standardEditing}
+					<!-- ══ EDIT/CREATE FORM ══ -->
+					<div class="section-label" style="margin-bottom:12px;">
+						{$handler.standard ? "Edit Standard" : "New Standard"}
+					</div>
+					<div class="std-form-grid">
+						<label>
+							<span class="std-field-label">Name *</span>
+							<input class="form-input" placeholder="Error handling standard" bind:value={$handler.standardForm.name} />
+						</label>
+						<label>
+							<span class="std-field-label">Context</span>
+							<input class="form-input" placeholder="testing, security, routing" bind:value={$handler.standardForm.context} />
+						</label>
+						<label>
+							<span class="std-field-label">Version</span>
+							<input class="form-input" placeholder="1.0.0" bind:value={$handler.standardForm.version} />
+						</label>
+						<label>
+							<span class="std-field-label">Language</span>
+							<input class="form-input" placeholder="typescript, python" bind:value={$handler.standardForm.language} />
+						</label>
+						<label>
+							<span class="std-field-label">Stack</span>
+							<input class="form-input" placeholder="svelte, vite, express" bind:value={$handler.standardForm.stack} />
+						</label>
+						<label>
+							<span class="std-field-label">Tags *</span>
+							<input class="form-input" placeholder="frontend, linting" bind:value={$handler.standardForm.tags} />
+						</label>
+						<label>
+							<span class="std-field-label">Parent ID</span>
+							<input class="form-input" placeholder="Optional parent UUID" bind:value={$handler.standardForm.parent_id} />
+						</label>
+						<label>
+							<span class="std-field-label">Metadata JSON</span>
+							<input class="form-input" placeholder='JSON metadata (e.g., source:dashboard)' bind:value={$handler.standardForm.metadata} />
+						</label>
+					</div>
+					<label style="display:block;margin-top:12px;">
+						<span class="std-field-label">Content *</span>
+						<textarea
+							class="form-textarea"
+							style="min-height:120px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:0.82rem;"
+							placeholder="Write the implementation rule in concise Markdown..."
+							bind:value={$handler.standardForm.content}
+						></textarea>
+					</label>
+					<div style="display:flex;gap:8px;margin-top:12px;">
+						<button
+							class="btn btn-primary"
+							disabled={$handler.standardSaving ||
+								!$handler.standardForm.name.trim() ||
+								!$handler.standardForm.content.trim()}
+							on:click={() => handler.saveStandard(onStandardUpdated, onClose, repo)}
+						>
+							<Icon name="check" size={14} strokeWidth={2} />
+							{$handler.standardSaving ? "Saving..." : $handler.standard ? "Save Changes" : "Create Standard"}
+						</button>
+						<button class="btn btn-ghost" on:click={handler.cancelStandardEdit} disabled={$handler.standardSaving}
+							>Cancel</button
+						>
+					</div>
+				{:else if $handler.standard}
+					<!-- ══ VIEW MODE ══ -->
+					<div class="detail-header-row">
+						<div style="flex:1;min-width:0;">
+							<div class="drawer-title">{$handler.standard.title}</div>
+							<div class="std-meta-row" style="margin-top:6px;">
+								<span class="std-badge std-badge-context">{$handler.standard.context}</span>
+								<span class="std-badge std-badge-version">v{$handler.standard.version}</span>
+								<span class="std-badge" class:std-badge-global={$handler.standard.is_global}
+									class:std-badge-repo={!$handler.standard.is_global}
+									>{$handler.standard.is_global ? "Global" : "Repo"}</span
+								>
+								{#if $handler.standard.parent_id}
+									<span class="std-badge std-badge-parent">child of {$handler.standard.parent_id}</span>
+								{/if}
+							</div>
+						</div>
+						<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+							<button class="btn btn-ghost btn-sm" on:click={handler.startStandardEdit}>
+								<Icon name="pencil" size={13} strokeWidth={2} />
+								Edit
+							</button>
+							<button
+								class="btn btn-ghost btn-sm"
+								style="color:#ef4444;"
+								disabled={$handler.standardDeleting}
+								on:click={() => handler.deleteStandard(onStandardDeleted, onClose)}
+							>
+								<Icon name="trash" size={13} strokeWidth={2} />
+								{$handler.standardDeleting ? "Deleting..." : "Delete"}
+							</button>
+						</div>
+					</div>
+
+					<!-- Meta grid -->
+					<div class="meta-grid" style="margin-bottom:16px;">
+						{#each [
+							{ label: "Language", val: $handler.standard.language || "any" },
+							{ label: "Stack", val: $handler.standard.stack.length ? $handler.standard.stack.join(", ") : "—" },
+							{ label: "Created", val: formatDate($handler.standard.created_at) },
+							{ label: "Updated", val: formatDate($handler.standard.updated_at) }
+						] as m (m.label)}
+							<div class="meta-cell">
+								<div class="meta-label">{m.label}</div>
+								<div class="meta-value">{m.val}</div>
+							</div>
+						{/each}
+					</div>
+
+					<!-- Tags -->
+					{#if $handler.standard.tags?.length}
+						<div style="margin-bottom:16px;">
+							<div class="section-label">Tags</div>
+							<div style="display:flex;flex-wrap:wrap;gap:6px;">
+								{#each $handler.standard.tags as tag (tag)}
+									<span class="tag-chip">{tag}</span>
+								{/each}
+							</div>
+						</div>
+					{/if}
+
+					<!-- Content -->
+					<div>
+						<div class="section-label" style="display:flex;justify-content:space-between;align-items:center;">
+							<span>Content</span>
+							<button
+								class="btn btn-ghost btn-icon"
+								on:click={() => handler.handleCopyStandardContent($handler.standard?.content || "")}
+								title="Copy to clipboard"
+								style="width:20px;height:20px;padding:0;border:none;background:transparent;"
+							>
+								<Icon
+									name={$handler.contentCopied ? "check" : "copy"}
+									size={12}
+									strokeWidth={2}
+									className={$handler.contentCopied ? "text-success" : ""}
+								/>
+							</button>
+						</div>
+						<div class="markdown-body md-card">
+							<Markdown content={$handler.standard?.content || ""} />
+						</div>
+					</div>
+
+					<!-- Metadata JSON -->
+					{#if $handler.standard.metadata && Object.keys($handler.standard.metadata).length > 0}
+						<div style="margin-top:16px;">
+							<div class="section-label">Metadata</div>
+							<pre class="json-pre">{JSON.stringify($handler.standard.metadata, null, 2)}</pre>
+						</div>
+					{/if}
+				{/if}
 			{/if}
 		</div>
 	</div>
