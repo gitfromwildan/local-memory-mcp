@@ -53,6 +53,9 @@ export const drawerTaskId = writable<string | null>(null);
 // Connection status
 export const healthData = writable<HealthData | null>(null);
 
+// Chat refresh signal — increment to trigger TopBar countdown reset
+export const chatRefreshSignal = writable(0);
+
 // Derived: ordered repos (pinned first)
 export const orderedRepos = derived([availableRepos, pinnedRepos, repoSearchQuery], ([$repos, $pinned, $query]) => {
 	const filtered = $query ? $repos.filter((r) => r.repo.toLowerCase().includes($query.toLowerCase())) : $repos;

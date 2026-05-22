@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { healthData, currentRepo, availableRepos, theme, themePreference } from "../lib/stores";
+	import { healthData, currentRepo, availableRepos, theme, themePreference, chatRefreshSignal } from "../lib/stores";
 	import Icon from "../lib/Icon.svelte";
 	import { onMount, onDestroy } from "svelte";
 	import { createTopBarHandler, GITHUB_URL, NPM_URL, DONATION_URL } from "../lib/composables/useTopBar";
@@ -30,6 +30,10 @@
 		startCountdown();
 		fetchNpmDownloads();
 	});
+
+	$: if ($chatRefreshSignal) {
+		manualRefresh();
+	}
 
 	onDestroy(() => destroy());
 </script>

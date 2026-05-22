@@ -2,10 +2,12 @@
 	import { onMount, afterUpdate, tick } from "svelte";
 	import { get } from "svelte/store";
 	import Icon from "../lib/Icon.svelte";
-	import { currentRepo, recentActions, recentActionsPage, recentActionsTotalItems } from "../lib/stores";
+	import { currentRepo, recentActions, recentActionsPage, recentActionsTotalItems, chatRefreshSignal } from "../lib/stores";
 	import { api } from "../lib/api";
 	import { createRecentActionsHandler } from "../lib/composables/useRecentActions";
 	import Markdown from "./Markdown.svelte";
+
+	export let onRefresh: () => void = () => {};
 
 	let open = false;
 	let chatMessage = "";
@@ -81,6 +83,8 @@
 			});
 			chatMessage = "";
 			await loadPage(1);
+			onRefresh();
+			chatRefreshSignal.update((n) => n + 1);
 			tick().then(() => handler.scrollToBottom(chatContainer, "instant"));
 		} catch (e) {
 			console.error("Failed to create task:", e);

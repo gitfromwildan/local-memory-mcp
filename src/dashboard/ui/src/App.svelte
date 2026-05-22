@@ -2,7 +2,7 @@
 	import { onMount } from "svelte";
 	import { get } from "svelte/store";
 	import "./app.css";
-	import { activeTab, currentRepo, recentActionsTotalItems, initPersistedState } from "./lib/stores";
+	import { activeTab, currentRepo, recentActionsTotalItems, initPersistedState, chatRefreshSignal } from "./lib/stores";
 	import { createAppHandler } from "./lib/composables/useApp";
 	import { api } from "./lib/api";
 
@@ -58,8 +58,8 @@
 				phase: "Inbox"
 			});
 			chatMessage = "";
-			await app.loadRecentActions(1, false);
-			kanbanBoard?.loadTasks(repo);
+			await app.onRefresh();
+			chatRefreshSignal.update((n) => n + 1);
 		} catch (e) {
 			console.error("Failed to create task from chat:", e);
 		} finally {
@@ -378,7 +378,7 @@
 />
 
 <!-- ════ Quick Create FAB ════ -->
-<FloatingChat />
+<FloatingChat onRefresh={app.onRefresh} />
 
 <style>
 	@media (max-width: 900px) {
