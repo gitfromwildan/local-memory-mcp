@@ -287,6 +287,18 @@ approval_mode = "prompt"
 
 ---
 
+## Keterbatasan yang Diketahui
+
+### MCP Prompts Tidak Didukung
+
+Codex CLI **tidak** mendukung MCP **prompts** (kemampuan `prompts/list` dan `prompts/get`). Ini berarti templat prompt seperti `memory-agent-core`, `project-briefing`, atau `task-orchestrator` tidak bisa dipanggil sebagai perintah slash di Codex.
+
+Namun, **Tools** dan **Resources** berfungsi penuh. Anda tetap bisa menggunakan tool server secara langsung (misalnya `memory-store`, `memory-search`, `task-list`) — hanya templat prompt bawaan yang tidak tersedia.
+
+Untuk agent dengan dukungan prompt penuh, lihat [MCP Protocol Reference](mcp-concepts.md).
+
+---
+
 ## Troubleshooting untuk Codex
 
 ### Server not found

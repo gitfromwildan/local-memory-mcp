@@ -118,6 +118,25 @@ Resources menyediakan akses hanya-baca ke tampilan data khusus dan pengetahuan g
 
 Prompts adalah templat instruksi yang telah ditentukan yang memandu interaksi model.
 
+### Batasan: Dukungan MCP Prompts oleh Agent
+
+Tidak semua coding agent mendukung MCP **prompts** (kemampuan untuk mendaftar/mendapatkan templat prompt). Berikut matriks kompatibilitasnya:
+
+| Agent | MCP Prompts | Catatan |
+|-------|------------|---------|
+| Claude Desktop | ✅ Didukung | Muncul sebagai perintah slash |
+| Claude Code | ✅ Didukung | Dipanggil sebagai `/mcp__servername__promptname` |
+| Cursor | ✅ Didukung | Prompts didukung, Resources TIDAK didukung |
+| Windsurf | ✅ Didukung | Semua: Tools, Prompts, Resources |
+| GitHub Copilot (VS Code) | ✅ Didukung | Gunakan `/<server>.<prompt>` di chat |
+| Continue.dev | ✅ Didukung | Muncul sebagai slash command di agent mode |
+| Zed | ✅ Didukung | Sebagai slash command |
+| Gemini CLI | ✅ Didukung | |
+| **Codex CLI (OpenAI)** | ❌ **Tidak Didukung** | Hanya Tools + Resources |
+| Cline | ❌ Tidak Didukung | Hanya Tools + Resources |
+
+Jika agent Anda tidak mendukung prompts, Anda tetap bisa menggunakan perilaku yang sama melalui **Tools** (misalnya instruksi `memory-agent-core` bisa di-prompt secara manual), atau memicu prompts melalui **Dashboard** UI.
+
 ### Prompts Siklus Hidup Inti
 - **`memory-agent-core`**: Kontrak perilaku penting untuk agen yang sadar memori.
 - **`project-briefing`**: Templat orientasi untuk memulai sesi baru dalam repositori.
