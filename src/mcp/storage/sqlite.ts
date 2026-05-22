@@ -4,7 +4,11 @@ import fs from "fs";
 import os from "os";
 import { MigrationManager } from "./migrations";
 import { MemoryEntity } from "../entities/memory";
+import { MemoryVectorEntity } from "../entities/memory.vector";
+import { MemoryArchiveEntity } from "../entities/memory.archive";
 import { TaskEntity } from "../entities/task";
+import { TaskCommentEntity } from "../entities/task-comment";
+import { TaskStatsEntity } from "../entities/task-stats";
 import { ActionEntity } from "../entities/action";
 import { SystemEntity } from "../entities/system";
 import { SummaryEntity } from "../entities/summary";
@@ -40,7 +44,11 @@ const DB_PATH = resolveDbPath();
 export class SQLiteStore {
 	public db: Database.Database;
 	public memories: MemoryEntity;
+	public memoryVectors: MemoryVectorEntity;
+	public memoryArchives: MemoryArchiveEntity;
 	public tasks: TaskEntity;
+	public taskComments: TaskCommentEntity;
+	public taskStats: TaskStatsEntity;
 	public actions: ActionEntity;
 	public system: SystemEntity;
 	public summaries: SummaryEntity;
@@ -78,7 +86,11 @@ export class SQLiteStore {
 		migrator.addStandardCodeColumn();
 
 		this.memories = new MemoryEntity(this.db);
+		this.memoryVectors = new MemoryVectorEntity(this.db);
+		this.memoryArchives = new MemoryArchiveEntity(this.db);
 		this.tasks = new TaskEntity(this.db);
+		this.taskComments = new TaskCommentEntity(this.db);
+		this.taskStats = new TaskStatsEntity(this.db);
 		this.actions = new ActionEntity(this.db);
 		this.system = new SystemEntity(this.db);
 		this.summaries = new SummaryEntity(this.db);

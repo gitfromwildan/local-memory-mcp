@@ -1,11 +1,12 @@
 // Feature: memory-mcp-optimization, Property 11: createRouter() uses provided storage
 import { describe, it, expect, vi } from "vitest";
 import * as fc from "fast-check";
-import { createRouter } from "../router";
-import { SQLiteStore } from "../storage/sqlite";
-import { VectorStore } from "../types";
 import { createSessionContext, updateSessionRoots } from "../session";
 import path from "node:path";
+import { createRouter } from "../router";
+import { validateRootBoundPath } from "../router";
+import { SQLiteStore } from "../storage/sqlite";
+import { VectorStore } from "../types";
 
 /**
  * Property 11: createRouter() menggunakan storage yang diberikan
@@ -23,7 +24,6 @@ describe("createRouter() — Property 11: uses provided storage", () => {
 				delete: vi.fn(),
 				getById: vi.fn().mockReturnValue(null),
 				searchByRepo: vi.fn().mockReturnValue([]),
-				searchBySimilarity: vi.fn().mockReturnValue([]),
 				getRecentMemories: vi.fn().mockReturnValue([]),
 				getTotalCount: vi.fn().mockReturnValue(0),
 				getSummary: vi.fn().mockReturnValue(null),
@@ -31,9 +31,7 @@ describe("createRouter() — Property 11: uses provided storage", () => {
 				incrementHitCount: vi.fn(),
 				incrementHitCounts: vi.fn(),
 				incrementRecallCount: vi.fn(),
-				archiveExpiredMemories: vi.fn().mockReturnValue(0),
-				upsertVectorEmbedding: vi.fn(),
-				checkConflicts: vi.fn().mockResolvedValue(null),
+
 				getStats: vi.fn().mockReturnValue({ total: 0, byType: {} })
 			},
 			tasks: {
@@ -45,6 +43,16 @@ describe("createRouter() — Property 11: uses provided storage", () => {
 				updateTask: vi.fn(),
 				deleteTask: vi.fn(),
 				getTaskById: vi.fn().mockReturnValue(null)
+			},
+			memoryVectors: {
+				searchBySimilarity: vi.fn().mockReturnValue([]),
+				upsertVectorEmbedding: vi.fn(),
+				checkConflicts: vi.fn().mockResolvedValue(null),
+			},
+			memoryArchives: {
+				archiveExpiredMemories: vi.fn().mockReturnValue(0),
+				archiveLowScoreMemories: vi.fn().mockReturnValue(0),
+				bulkDeleteMemories: vi.fn().mockReturnValue(0),
 			},
 			actions: {
 				logAction: vi.fn()
@@ -98,9 +106,9 @@ describe("createRouter() — Property 11: uses provided storage", () => {
 			arguments: { query: "test query", repo: "test-repo", limit: 5 }
 		});
 
-		expect(mockDb.memories.searchBySimilarity).toHaveBeenCalled();
+		expect(mockDb.memoryVectors.searchBySimilarity).toHaveBeenCalled();
 		// Verify the first argument to searchBySimilarity contains the repo
-		const callArgs = (mockDb.memories.searchBySimilarity as any).mock.calls[0];
+		const callArgs = (mockDb.memoryVectors.searchBySimilarity as any).mock.calls[0];
 		expect(callArgs[1]).toBe("test-repo");
 	});
 
@@ -557,7 +565,7 @@ describe("createRouter() — Property 11: uses provided storage", () => {
 	it("returns resource links in memory-search results", async () => {
 		const mockDb = makeMockDb();
 		const mockVectors = makeMockVectors();
-		(mockDb.memories.searchBySimilarity as any).mockReturnValue([
+		(mockDb.memoryVectors.searchBySimilarity as any).mockReturnValue([
 			{
 				id: "123e4567-e89b-12d3-a456-426614174000",
 				type: "decision",
@@ -583,9 +591,47 @@ describe("createRouter() — Property 11: uses provided storage", () => {
 		})) as any;
 
 		// New policy: no automatic resource links in search results to force use of detail tools
+
 		const resourceLinks = (result.content as Record<string, unknown>[]).filter(
 			(entry) => entry.type === "resource_link"
 		);
 		expect(resourceLinks.length).toBe(0);
+	});
+});
+
+describe("validateRootBoundPath", () => {
+	it("should return early if value is not a string", () => {
+		expect(() => validateRootBoundPath(123, "field")).not.toThrow();
+		expect(() => validateRootBoundPath(null, "field")).not.toThrow();
+		expect(() => validateRootBoundPath({}, "field")).not.toThrow();
+		expect(() => validateRootBoundPath(undefined, "field")).not.toThrow();
+	});
+
+	it("should return early if value is not an absolute path", () => {
+		expect(() => validateRootBoundPath("relative/path", "field")).not.toThrow();
+		expect(() => validateRootBoundPath("./relative/path", "field")).not.toThrow();
+	});
+
+	it("should throw an error if path is outside allowed roots", () => {
+		const session = createSessionContext();
+		updateSessionRoots(session, [{ uri: "file:///allowed/root", name: "root" }]);
+
+		const outsidePath = path.resolve("/outside/root/file.txt");
+		expect(() => validateRootBoundPath(outsidePath, "my_field", session)).toThrowError(
+			"my_field must stay within the active MCP roots"
+		);
+	});
+
+	it("should not throw if path is within allowed roots", () => {
+		const session = createSessionContext();
+		updateSessionRoots(session, [{ uri: "file:///allowed/root", name: "root" }]);
+
+		const insidePath = path.resolve("/allowed/root/file.txt");
+		expect(() => validateRootBoundPath(insidePath, "my_field", session)).not.toThrow();
+	});
+
+	it("should not throw if session is undefined", () => {
+		const insidePath = path.resolve("/allowed/root/file.txt");
+		expect(() => validateRootBoundPath(insidePath, "my_field")).not.toThrow();
 	});
 });

@@ -124,7 +124,7 @@ export async function archiveTaskToMemory(taskId: string, repo: string, storage:
 	const task = storage.tasks.getTaskById(taskId);
 	if (!task) return;
 
-	const comments = storage.tasks.getTaskCommentsByTaskId(taskId);
+	const comments = storage.taskComments.getTaskCommentsByTaskId(taskId);
 
 	let content = `Task: [${task.task_code}] ${task.title}\n`;
 	content += `Phase: ${task.phase}\n`;
@@ -248,7 +248,7 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 		const createdTasks: string[] = [];
 		const now = new Date().toISOString();
 		const codesInRequest = new Set<string>();
-		const initialStats = storage.tasks.getTaskStats(repo);
+		const initialStats = storage.taskStats.getTaskStats(repo);
 		let pendingInRequestCount = 0;
 
 		for (const taskData of bulkTasks) {
@@ -300,7 +300,7 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 				finished_at: statusTimestamps.finished_at,
 				canceled_at: statusTimestamps.canceled_at,
 				est_tokens: taskData.est_tokens ?? 0,
-				tags: tags,
+				tags: tags, commit_id: null, changed_files: [],
 				metadata: (taskData.metadata as Record<string, unknown>) || {},
 				parent_id: resolveParentId(taskData.parent_id, repo, storage),
 				depends_on: taskData.depends_on || null
@@ -349,9 +349,11 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 	}
 
 	if (status === "pending") {
-		const stats = storage.tasks.getTaskStats(repo);
+		const stats = storage.taskStats.getTaskStats(repo);
 		if (stats.todo >= 10) {
-			throw new Error(`Cannot create task as 'pending'. Maximum of 10 pending tasks reached. Please use status 'backlog' for new tasks instead.`);
+			throw new Error(
+				`Cannot create task as 'pending'. Maximum of 10 pending tasks reached. Please use status 'backlog' for new tasks instead.`
+			);
 		}
 	}
 
@@ -382,7 +384,7 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 		finished_at: statusTimestamps.finished_at,
 		canceled_at: statusTimestamps.canceled_at,
 		est_tokens: est_tokens ?? 0,
-		tags: finalTags,
+		tags: finalTags, commit_id: null, changed_files: [],
 		metadata: metadata || {},
 		parent_id: resolveParentId(parent_id, repo, storage),
 		depends_on: depends_on || null
@@ -479,7 +481,8 @@ function buildMissingTaskSchema(task: Record<string, unknown>) {
 	});
 	addRequiredStringField(properties, required, task, "description", {
 		title: "Description",
-		description: "Detailed description. MUST follow format: 1. Context & Analysis, 2. Step & Implementation, 3. Acceptance & Verification",
+		description:
+			"Detailed description. MUST follow format: 1. Context & Analysis, 2. Step & Implementation, 3. Acceptance & Verification",
 		minLength: 1
 	});
 
@@ -616,18 +619,17 @@ export async function handleTaskUpdate(args: unknown, storage: SQLiteStore, vect
 		}
 
 		if (updates.status === "completed") {
-		finalUpdates.finished_at = now;
-		finalUpdates.commit_id = updates.commit_id;
-		finalUpdates.changed_files = updates.changed_files;
-	}
-		else if (updates.status === "canceled") finalUpdates.canceled_at = now;
+			finalUpdates.finished_at = now;
+			finalUpdates.commit_id = updates.commit_id;
+			finalUpdates.changed_files = updates.changed_files;
+		} else if (updates.status === "canceled") finalUpdates.canceled_at = now;
 		else if (updates.status === "in_progress" && existingTask.status !== "in_progress")
 			finalUpdates.in_progress_at = now;
 
 		storage.tasks.updateTask(targetId, finalUpdates);
 
 		if (comment !== undefined || isStatusChanging) {
-			storage.tasks.insertTaskComment({
+			storage.taskComments.insertTaskComment({
 				id: randomUUID(),
 				task_id: targetId,
 				repo,
