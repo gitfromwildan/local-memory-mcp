@@ -2,7 +2,7 @@
 	import { healthData, currentRepo, availableRepos, theme, themePreference } from "../lib/stores";
 	import Icon from "../lib/Icon.svelte";
 	import { onMount, onDestroy } from "svelte";
-	import { createTopBarHandler, GITHUB_URL, NPM_URL } from "../lib/composables/useTopBar";
+	import { createTopBarHandler, GITHUB_URL, NPM_URL, DONATION_URL } from "../lib/composables/useTopBar";
 
 	export let onRefresh: () => void = () => {};
 	export let onToggleMobileMenu: () => void = () => {};
@@ -157,6 +157,26 @@
 					{:else}
 						<span class="ext-link-label">npm</span>
 					{/if}
+				</a>
+
+				<!-- Divider -->
+				<div class="ext-link-divider"></div>
+
+				<!-- Donasi -->
+				<a
+					href={DONATION_URL}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="ext-link-btn ext-link-donate"
+					title="Support this project"
+					aria-label="Donation"
+					id="donateLink"
+				>
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<path d="M17 12a5 5 0 01-5 5m-5-5a5 5 0 015-5" />
+						<path d="M12 7v10" />
+					</svg>
+					<span class="ext-link-label">Donasi</span>
 				</a>
 			</div>
 
@@ -369,6 +389,16 @@
 	:global(html.dark) .ext-link-npm:hover {
 		background: rgba(203, 36, 49, 0.12) !important;
 		color: #f87171 !important;
+	}
+
+	.ext-link-donate:hover {
+		background: rgba(249, 115, 22, 0.1) !important;
+		color: #ea580c !important;
+	}
+
+	:global(html.dark) .ext-link-donate:hover {
+		background: rgba(249, 115, 22, 0.15) !important;
+		color: #fb923c !important;
 	}
 
 	.ext-link-divider {

@@ -4,6 +4,7 @@ import { getRepoInitials } from "../utils";
 
 export const GITHUB_URL = "https://github.com/vheins/local-memory-mcp";
 export const NPM_URL = "https://www.npmjs.com/package/@vheins/local-memory-mcp";
+export const DONATION_URL = "https://teer.id/vheins";
 
 export function createTopBarHandler(onRefresh: () => void) {
 	const countdownSeconds = writable(30);
