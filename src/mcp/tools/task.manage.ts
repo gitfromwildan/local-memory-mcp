@@ -313,9 +313,10 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 			(task as Task & { _temp_id?: string })._temp_id = task.id; // temp store for mapping if needed
 		}
 
+		const taskCodesStr = createdTasks.length > 0 ? `: ${createdTasks.join(", ")}` : "";
 		return createMcpResponse(
 			{ success: true, repo, createdCount: bulkTasks.length, taskCodes: createdTasks },
-			`Created ${bulkTasks.length} tasks in repo "${repo}".`,
+			`Created ${bulkTasks.length} tasks in repo "${repo}"${taskCodesStr}.`,
 			{ includeSerializedStructuredContent: (parsed as { structured?: boolean }).structured || false }
 		);
 	}
@@ -654,10 +655,17 @@ export async function handleTaskUpdate(args: unknown, storage: SQLiteStore, vect
 		updatedCount++;
 	}
 
+	const taskCodesStr = updatedTasks.length > 0
+		? ` Tasks: ${updatedTasks.map((t) => t.code).join(", ")}.`
+		: "";
+	const fieldsStr = Object.keys(updates).length > 0
+		? ` Fields: ${Object.keys(updates).join(", ")}.`
+		: "";
 	const isCompleted = updates.status === "completed" && updatedCount > 0;
 	let summaryText = isCompleted
-		? `Updated ${updatedCount} task(s) in repo "${repo}". ✅ Task marked as completed with commit ${updates.commit_id} (${(updates.changed_files || []).length} files changed).`
+		? `Updated ${updatedCount} task(s) in repo "${repo}". Task marked as completed with commit ${updates.commit_id} (${(updates.changed_files || []).length} files changed).`
 		: `Updated ${updatedCount} task(s) in repo "${repo}".`;
+	summaryText += `${taskCodesStr}${fieldsStr}`;
 	if (releasedClaims || expiredHandoffs) {
 		summaryText += ` Auto-closed coordination: released ${releasedClaims} claim(s), expired ${expiredHandoffs} handoff(s).`;
 	}
@@ -717,19 +725,24 @@ export async function handleTaskDelete(args: unknown, storage: SQLiteStore) {
 
 	const targetIds = resolvedIds;
 
+	const tasksToDelete = storage.tasks.getTasksByIds(targetIds);
+	const deletedCodes = tasksToDelete.map((t) => t.task_code);
+
 	for (const targetId of targetIds) {
 		storage.tasks.deleteTask(targetId);
 	}
 
+	const deletedCodesStr = deletedCodes.length > 0 ? `: ${deletedCodes.join(", ")}` : "";
 	return createMcpResponse(
 		{
 			success: true,
 			id: id || undefined,
 			ids: ids || undefined,
 			repo,
-			deletedCount: targetIds.length
+			deletedCount: targetIds.length,
+			deletedCodes
 		},
-		`Deleted ${targetIds.length} task(s) from repo "${repo}".`,
+		`Deleted ${targetIds.length} task(s) from repo "${repo}"${deletedCodesStr}.`,
 		{ includeSerializedStructuredContent: validated.structured }
 	);
 }
