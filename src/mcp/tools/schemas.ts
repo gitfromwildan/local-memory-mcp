@@ -750,14 +750,46 @@ export const TOOL_DEFINITIONS = [
 					description: "If true, this memory is shared across all repositories"
 				},
 				ttlDays: { type: "number", minimum: 1 },
-				supersedes: { type: "string", format: "uuid" },
+				supersedes: { type: "string", description: "Optional memory ID (UUID) or memory code to supersede. Resolved before storing." },
+				memories: {
+					type: "array",
+					items: {
+						type: "object",
+						properties: {
+							type: { type: "string", enum: ["code_fact", "decision", "mistake", "pattern", "task_archive"] },
+							title: { type: "string", minLength: 3, maxLength: 100 },
+							content: { type: "string", minLength: 10 },
+							importance: { type: "number", minimum: 1, maximum: 5 },
+							agent: { type: "string" },
+							role: { type: "string", default: "unknown" },
+							model: { type: "string" },
+							scope: {
+								type: "object",
+								properties: {
+									repo: { type: "string" },
+									branch: { type: "string" },
+									folder: { type: "string" },
+									language: { type: "string" }
+								},
+								required: ["repo"]
+							},
+							code: { type: "string" },
+							ttlDays: { type: "number", minimum: 1 },
+							supersedes: { type: "string" },
+							tags: { type: "array", items: { type: "string" } },
+							metadata: { type: "object" },
+							is_global: { type: "boolean", default: false }
+						},
+						required: ["type", "title", "content", "importance", "agent", "model", "scope"]
+					},
+					description: "Array of memories for bulk creation"
+				},
 				structured: {
 					type: "boolean",
 					default: false,
 					description: "If true, returns structured JSON of the stored memory."
 				}
-			},
-			required: ["type", "title", "content", "importance", "scope", "agent", "model"]
+			}
 		},
 		outputSchema: {
 			type: "object",
@@ -831,7 +863,7 @@ export const TOOL_DEFINITIONS = [
 				agent: { type: "string" },
 				role: { type: "string" },
 				status: { type: "string", enum: ["active", "archived"] },
-				supersedes: { type: "string", format: "uuid" },
+				supersedes: { type: "string" },
 				tags: { type: "array", items: { type: "string" } },
 				metadata: { type: "object" },
 				is_global: { type: "boolean" },
@@ -1191,7 +1223,7 @@ export const TOOL_DEFINITIONS = [
 					description:
 						"Optional parent task ID (UUID) or parent task code (e.g. TASK-001). Resolved to UUID before storing."
 				},
-				depends_on: { type: "string", format: "uuid" },
+				depends_on: { type: "string", description: "Optional task ID (UUID) or task code (e.g. TASK-001). Resolved to UUID before storing." },
 				est_tokens: { type: "number", minimum: 0, description: "Estimated tokens budget for this task" },
 				tasks: {
 					type: "array",
@@ -1224,7 +1256,7 @@ export const TOOL_DEFINITIONS = [
 								description:
 									"Optional parent task ID (UUID) or parent task code (e.g. TASK-001). Resolved to UUID before storing."
 							},
-							depends_on: { type: "string", format: "uuid" },
+							depends_on: { type: "string", description: "Optional task ID (UUID) or task code (e.g. TASK-001). Resolved to UUID before storing." },
 							est_tokens: { type: "number", minimum: 0 }
 						},
 						required: ["task_code", "phase", "title", "description"]
@@ -1303,7 +1335,7 @@ export const TOOL_DEFINITIONS = [
 					description:
 						"Optional parent task ID (UUID) or parent task code (e.g. TASK-001). Resolved to UUID before storing."
 				},
-				depends_on: { type: "string", format: "uuid" },
+				depends_on: { type: "string", description: "Optional task ID (UUID) or task code (e.g. TASK-001). Resolved to UUID before storing." },
 				est_tokens: {
 					type: "number",
 					minimum: 0,
@@ -1796,8 +1828,7 @@ export const TOOL_DEFINITIONS = [
 				},
 				parent_id: {
 					type: "string",
-					format: "uuid",
-					description: "Optional parent standard ID when this rule is a child/specialization."
+					description: "Optional parent standard ID (UUID) or standard code. Resolved to UUID before storing."
 				},
 				context: { type: "string", description: "Context or category (e.g., 'error-handling', 'security')" },
 				version: { type: "string", description: "Version of the standard (e.g., '1.0.0')" },
@@ -1823,9 +1854,30 @@ export const TOOL_DEFINITIONS = [
 				},
 				agent: { type: "string", description: "Agent creating the standard" },
 				model: { type: "string", description: "AI model used" },
+				standards: {
+					type: "array",
+					items: {
+						type: "object",
+						properties: {
+							name: { type: "string" },
+							content: { type: "string" },
+							parent_id: { type: "string" },
+							context: { type: "string" },
+							version: { type: "string" },
+							language: { type: "string" },
+							stack: { type: "array", items: { type: "string" } },
+							is_global: { type: "boolean" },
+							tags: { type: "array", items: { type: "string" } },
+							metadata: { type: "object" },
+							agent: { type: "string" },
+							model: { type: "string" }
+						},
+						required: ["name", "content", "tags", "metadata"]
+					},
+					description: "Array of standards for bulk creation"
+				},
 				structured: { type: "boolean", default: false }
 			},
-			required: ["name", "content", "tags", "metadata"]
 		},
 		outputSchema: {
 			type: "object",
@@ -1891,7 +1943,7 @@ export const TOOL_DEFINITIONS = [
 				code: { type: "string", maxLength: 20, description: "Short standard code. Optional if id is provided." },
 				name: { type: "string", minLength: 3, maxLength: 255 },
 				content: { type: "string", minLength: 10 },
-				parent_id: { type: "string", format: "uuid", nullable: true },
+				parent_id: { type: "string", nullable: true },
 				context: { type: "string" },
 				version: { type: "string" },
 				language: { type: "string" },
