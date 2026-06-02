@@ -335,6 +335,16 @@ export class TaskEntity extends BaseEntity {
 		return (row?.count ?? 0) > 0;
 	}
 
+	getExistingTaskCodes(repo: string, codes: string[]): Set<string> {
+		if (codes.length === 0) return new Set();
+		const placeholders = codes.map(() => "?").join(",");
+		const rows = this.all<{ task_code: string }>(
+			`SELECT task_code FROM tasks WHERE repo = ? AND task_code IN (${placeholders})`,
+			[repo, ...codes]
+		);
+		return new Set(rows.map((r) => r.task_code));
+	}
+
 	bulkInsertTasks(tasks: Task[]): number {
 		return this.transaction(() => {
 			let count = 0;

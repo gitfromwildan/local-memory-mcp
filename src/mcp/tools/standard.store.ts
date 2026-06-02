@@ -131,22 +131,83 @@ export async function handleStandardStore(
 ): Promise<McpResponse> {
 	const validated = StandardStoreSchema.parse(params);
 
-	// Bulk mode
+	// Bulk mode — collect entries first, then batch insert
 	if (validated.standards) {
+		const entries: CodingStandardEntry[] = [];
 		const storedCodes: string[] = [];
+
 		for (const std of validated.standards) {
-			const result = await storeSingleStandard(
-				{
-					...std,
-					structured: validated.structured
-				},
-				db,
-				vectors
+			const incomingVersion = std.version || "1.0.0";
+			const incomingLanguage = std.language ?? null;
+			const incomingStack = std.stack ?? [];
+			const conflict = db.standards.checkConflicts(
+				std.content,
+				incomingVersion,
+				undefined,
+				incomingLanguage,
+				incomingStack,
+				0.82
 			);
-			if (result.isError) return result;
-			const data = result.structuredContent as { standard?: { code?: string } };
-			if (data?.standard?.code) storedCodes.push(data.standard.code);
+
+			if (conflict) {
+				return createMcpResponse(
+					{
+						success: false,
+						error: "STANDARD_CONFLICT",
+						message: `This standard's content is highly similar to an existing standard (ID: ${conflict.id}, similarity: ${(conflict.similarity * 100).toFixed(1)}%).`,
+						conflicting_standard: {
+							id: conflict.id,
+							title: conflict.title,
+							version: conflict.version,
+							language: conflict.language,
+							stack: conflict.stack,
+							content: conflict.content
+						},
+						instruction:
+							"Use 'standard-update' on the existing ID to update it. To store a distinct variant, supply a different 'version', 'language', or non-overlapping 'stack'."
+					},
+					`Rejected: conflicts with standard "${conflict.title}" (v${conflict.version}, ${conflict.language || "any"}) [${conflict.id.slice(0, 8)}...]. Update via 'standard-update', or differentiate by version / language / stack.`
+				);
+			}
+
+			const now = new Date().toISOString();
+			const code = generateShortCode();
+			entries.push({
+				id: randomUUID(),
+				code,
+				title: std.name,
+				content: std.content,
+				parent_id: resolveStandardParentId(std.parent_id, db),
+				context: toContextSlug(std.context || "general"),
+				version: std.version || "1.0.0",
+				language: std.language || null,
+				stack: std.stack || [],
+				is_global: std.is_global !== false,
+				repo: null,
+				tags: std.tags || [],
+				metadata: std.metadata,
+				created_at: now,
+				updated_at: now,
+				hit_count: 0,
+				last_used_at: null,
+				agent: std.agent || "unknown",
+				model: std.model || "unknown"
+			});
+			storedCodes.push(code);
 		}
+
+		// Batch insert: single transaction instead of N individual inserts
+		db.standards.bulkInsertStandards(entries);
+
+		// Vector upserts per-item
+		for (const entry of entries) {
+			try {
+				await vectors.upsert(entry.id, buildStandardVectorText(entry), "standard");
+			} catch (error) {
+				logger.warn("Failed to generate standard vector embedding", { error: String(error) });
+			}
+		}
+
 		const codesStr = storedCodes.length > 0 ? `: ${storedCodes.join(", ")}` : "";
 		return createMcpResponse(
 			{ success: true, createdCount: validated.standards.length, codes: storedCodes },

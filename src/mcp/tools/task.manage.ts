@@ -257,6 +257,11 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 		const tasksToInsert: Task[] = [];
 		const now = new Date().toISOString();
 		const codesInRequest = new Set<string>();
+
+		// Batch duplicate check: single query instead of N
+		const allCodes = bulkTasks.map((t) => t.task_code);
+		const existingCodes = storage.tasks.getExistingTaskCodes(repo, allCodes);
+
 		const initialStats = storage.taskStats.getTaskStats(repo);
 		let pendingInRequestCount = 0;
 
@@ -264,7 +269,7 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 			if (codesInRequest.has(taskData.task_code)) {
 				throw new Error(`Duplicate task_code in request: '${taskData.task_code}'`);
 			}
-			if (storage.tasks.isTaskCodeDuplicate(repo, taskData.task_code)) {
+			if (existingCodes.has(taskData.task_code)) {
 				throw new Error(`Duplicate task_code: '${taskData.task_code}' already exists in repository '${repo}'`);
 			}
 			codesInRequest.add(taskData.task_code);

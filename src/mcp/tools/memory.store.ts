@@ -156,22 +156,100 @@ export async function handleMemoryStore(
 ): Promise<McpResponse> {
 	const validated = MemoryStoreSchema.parse(params);
 
-	// Bulk mode
+	// Bulk mode — collect entries first, then batch insert
 	if (validated.memories) {
+		const now = new Date().toISOString();
+		const entries: MemoryEntry[] = [];
 		const storedCodes: string[] = [];
+
 		for (const mem of validated.memories) {
-			const result = await storeSingleMemory(
-				{
-					...mem,
-					structured: validated.structured
-				},
-				db,
-				vectors
-			);
-			if (result.isError) return result;
-			const data = result.structuredContent as { code?: string };
-			if (data?.code) storedCodes.push(data.code);
+			if (hasMetadataLikeTitle(mem.title)) {
+				throw new Error(
+					"Title appears to contain metadata. Keep title concise and move agent/role/date details into metadata or dedicated fields."
+				);
+			}
+
+			const createdAtTime = new Date(now).getTime();
+			const expires_at =
+				mem.ttlDays != null ? new Date(createdAtTime + mem.ttlDays * 86400000).toISOString() : null;
+
+			const resolvedSupersedes = resolveMemorySupersedes(mem.supersedes, db);
+
+			if (!resolvedSupersedes && mem.type !== "task_archive") {
+				const conflict = await db.memoryVectors.checkConflicts(
+					mem.content,
+					mem.scope.repo,
+					mem.type,
+					vectors,
+					0.55
+				);
+				if (conflict) {
+					return createMcpResponse(
+						{
+							success: false,
+							error: "MEMORY_CONFLICT",
+							message: `This memory content overlaps significantly with an existing memory (ID: ${conflict.id}).`,
+							conflicting_memory: { id: conflict.id, title: conflict.title, content: conflict.content },
+							instruction:
+								"Use 'memory-update' on the existing ID, or provide 'supersedes' if this new memory replaces it."
+						},
+						`Rejected due to conflict: "${conflict.title}" (${conflict.id.slice(0, 8)}...). Hint: Use 'supersedes' or 'memory-update'.`
+					);
+				}
+			}
+
+			if (resolvedSupersedes) {
+				const oldMemory = db.memories.getById(resolvedSupersedes);
+				if (oldMemory) {
+					db.memories.update(oldMemory.id, { status: "archived" });
+				}
+			}
+
+			const tags = mem.tags ?? [];
+			if (mem.scope.language && !tags.includes(mem.scope.language.toLowerCase())) {
+				tags.push(mem.scope.language.toLowerCase());
+			}
+
+			const code = mem.code || generateShortCode();
+			entries.push({
+				id: randomUUID(),
+				code,
+				type: mem.type as MemoryEntry["type"],
+				title: mem.title,
+				content: mem.content,
+				importance: mem.importance,
+				agent: mem.agent,
+				role: mem.role as string,
+				model: mem.model,
+				scope: mem.scope,
+				created_at: now,
+				updated_at: now,
+				completed_at: null,
+				hit_count: 0,
+				recall_count: 0,
+				last_used_at: null,
+				expires_at,
+				supersedes: resolvedSupersedes,
+				status: "active",
+				tags,
+				metadata: mem.metadata ?? {},
+				is_global: mem.is_global
+			});
+			storedCodes.push(code);
 		}
+
+		// Batch insert: single transaction instead of N individual inserts
+		db.memories.bulkInsertMemories(entries);
+
+		// Vector upserts per-item (async, can't easily batch)
+		for (const entry of entries) {
+			try {
+				await vectors.upsert(entry.id, entry.content);
+			} catch (error) {
+				logger.warn("Failed to generate vector embedding", { error: String(error) });
+			}
+		}
+
 		const codesStr = storedCodes.length > 0 ? `: ${storedCodes.join(", ")}` : "";
 		return createMcpResponse(
 			{ success: true, repo: validated.memories[0]?.scope.repo, createdCount: validated.memories.length, codes: storedCodes },
