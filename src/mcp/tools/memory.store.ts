@@ -5,6 +5,8 @@ import { VectorStore, MemoryEntry } from "../types";
 import { logger } from "../utils/logger";
 import { createMcpResponse, McpResponse } from "../utils/mcp-response";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function hasMetadataLikeTitle(title: string): boolean {
 	const normalized = title.trim();
 	return /^\[[^\]]{0,200}(agent:|role:|model:|\d{4}-\d{2}-\d{2}|source_)[^\]]*\]/i.test(normalized);
@@ -19,50 +21,63 @@ function generateShortCode(): string {
 	return code;
 }
 
-export async function handleMemoryStore(
-	params: Record<string, unknown>,
+function resolveMemorySupersedes(value: string | null | undefined, db: SQLiteStore): string | null {
+	if (!value) return null;
+	if (UUID_REGEX.test(value)) return value;
+	const memory = db.memories.getByCode(value);
+	if (!memory) throw new Error(`supersedes: memory with code '${value}' not found`);
+	return memory.id;
+}
+
+async function storeSingleMemory(
+	params: {
+		code?: string;
+		type: string;
+		title: string;
+		content: string;
+		importance: number;
+		agent: string;
+		role: string;
+		model: string;
+		scope: { repo: string; branch?: string; folder?: string; language?: string };
+		ttlDays?: number;
+		supersedes?: string;
+		tags?: string[];
+		metadata?: Record<string, unknown>;
+		is_global: boolean;
+		structured: boolean;
+	},
 	db: SQLiteStore,
 	vectors: VectorStore
 ): Promise<McpResponse> {
-	// Validate input
-	const validated = MemoryStoreSchema.parse(params);
-
-	if (hasMetadataLikeTitle(validated.title)) {
+	if (hasMetadataLikeTitle(params.title)) {
 		throw new Error(
 			"Title appears to contain metadata. Keep title concise and move agent/role/date details into metadata or dedicated fields."
 		);
 	}
 
-	// Create memory entry
 	const now = new Date().toISOString();
-
-	// Compute expires_at if ttlDays is provided — use created_at base for determinism
 	const createdAtTime = new Date(now).getTime();
 	const expires_at =
-		validated.ttlDays != null ? new Date(createdAtTime + validated.ttlDays * 86400000).toISOString() : null;
+		params.ttlDays != null ? new Date(createdAtTime + params.ttlDays * 86400000).toISOString() : null;
 
-	// Check for semantic conflicts before storing (threshold: 0.55)
-	// Skip for task_archive as similar tasks often have similar content
-	if (!validated.supersedes && validated.type !== "task_archive") {
+	const resolvedSupersedes = resolveMemorySupersedes(params.supersedes, db);
+
+	if (!resolvedSupersedes && params.type !== "task_archive") {
 		const conflict = await db.memoryVectors.checkConflicts(
-			validated.content,
-			validated.scope.repo,
-			validated.type,
+			params.content,
+			params.scope.repo,
+			params.type,
 			vectors,
 			0.55
 		);
-
 		if (conflict) {
 			return createMcpResponse(
 				{
 					success: false,
 					error: "MEMORY_CONFLICT",
 					message: `This memory content overlaps significantly with an existing memory (ID: ${conflict.id}).`,
-					conflicting_memory: {
-						id: conflict.id,
-						title: conflict.title,
-						content: conflict.content
-					},
+					conflicting_memory: { id: conflict.id, title: conflict.title, content: conflict.content },
 					instruction:
 						"Use 'memory-update' on the existing ID, or provide 'supersedes' if this new memory replaces it. If the old memory is no longer relevant, you can delete it first."
 				},
@@ -71,35 +86,29 @@ export async function handleMemoryStore(
 		}
 	}
 
-	// If this memory supersedes an old one, archive the old one
-	if (validated.supersedes) {
-		const oldMemory = db.memories.getById(validated.supersedes);
+	if (resolvedSupersedes) {
+		const oldMemory = db.memories.getById(resolvedSupersedes);
 		if (oldMemory) {
 			db.memories.update(oldMemory.id, { status: "archived" });
-			logger.info("[Tool] memory.store - archived superseded memory", {
-				oldId: oldMemory.id,
-				newId: validated.supersedes
-			});
 		}
 	}
 
-	// Auto-tagging based on language scope
-	const tags = validated.tags ?? [];
-	if (validated.scope.language && !tags.includes(validated.scope.language.toLowerCase())) {
-		tags.push(validated.scope.language.toLowerCase());
+	const tags = params.tags ?? [];
+	if (params.scope.language && !tags.includes(params.scope.language.toLowerCase())) {
+		tags.push(params.scope.language.toLowerCase());
 	}
 
 	const entry: MemoryEntry = {
 		id: randomUUID(),
-		code: validated.code || generateShortCode(),
-		type: validated.type,
-		title: validated.title,
-		content: validated.content,
-		importance: validated.importance,
-		agent: validated.agent,
-		role: validated.role,
-		model: validated.model,
-		scope: validated.scope,
+		code: params.code || generateShortCode(),
+		type: params.type as MemoryEntry["type"],
+		title: params.title,
+		content: params.content,
+		importance: params.importance,
+		agent: params.agent,
+		role: params.role,
+		model: params.model,
+		scope: params.scope,
 		created_at: now,
 		updated_at: now,
 		completed_at: null,
@@ -107,31 +116,20 @@ export async function handleMemoryStore(
 		recall_count: 0,
 		last_used_at: null,
 		expires_at,
-		supersedes: validated.supersedes ?? null,
+		supersedes: resolvedSupersedes,
 		status: "active",
 		tags,
-		metadata: validated.metadata ?? {},
-		is_global: validated.is_global
+		metadata: params.metadata ?? {},
+		is_global: params.is_global
 	};
 
-	// Store in SQLite
 	db.memories.insert(entry);
 
-	// Automatically generate and store vector embedding
 	try {
 		await vectors.upsert(entry.id, entry.content);
 	} catch (error) {
 		logger.warn("Failed to generate vector embedding", { error: String(error) });
-		// Continue anyway - vectors are optional for search fallback
 	}
-
-	logger.info("[Tool] memory.store", {
-		repo: validated.scope.repo,
-		id: entry.id,
-		title: entry.title,
-		type: entry.type,
-		importance: entry.importance
-	});
 
 	return createMcpResponse(
 		{
@@ -146,7 +144,62 @@ export async function handleMemoryStore(
 		{
 			contentSummary: `Stored [${entry.code}] "${entry.title}" in repo "${entry.scope.repo}".`,
 			structuredContentPathHint: "code",
-			includeSerializedStructuredContent: validated.structured
+			includeSerializedStructuredContent: params.structured
 		}
+	);
+}
+
+export async function handleMemoryStore(
+	params: Record<string, unknown>,
+	db: SQLiteStore,
+	vectors: VectorStore
+): Promise<McpResponse> {
+	const validated = MemoryStoreSchema.parse(params);
+
+	// Bulk mode
+	if (validated.memories) {
+		const storedCodes: string[] = [];
+		for (const mem of validated.memories) {
+			const result = await storeSingleMemory(
+				{
+					...mem,
+					structured: validated.structured
+				},
+				db,
+				vectors
+			);
+			if (result.isError) return result;
+			const data = result.structuredContent as { code?: string };
+			if (data?.code) storedCodes.push(data.code);
+		}
+		const codesStr = storedCodes.length > 0 ? `: ${storedCodes.join(", ")}` : "";
+		return createMcpResponse(
+			{ success: true, repo: validated.memories[0]?.scope.repo, createdCount: validated.memories.length, codes: storedCodes },
+			`Stored ${validated.memories.length} memories${codesStr}.`,
+			{ includeSerializedStructuredContent: validated.structured }
+		);
+	}
+
+	// Single mode
+	return storeSingleMemory(
+		{
+			code: validated.code,
+			type: validated.type!,
+			title: validated.title!,
+			content: validated.content!,
+			importance: validated.importance!,
+			agent: validated.agent!,
+			role: validated.role!,
+			model: validated.model!,
+			scope: validated.scope!,
+			ttlDays: validated.ttlDays,
+			supersedes: validated.supersedes,
+			tags: validated.tags,
+			metadata: validated.metadata,
+			is_global: validated.is_global,
+			structured: validated.structured
+		},
+		db,
+		vectors
 	);
 }

@@ -4,9 +4,19 @@ import { Memory, VectorStore } from "../types";
 import { createMcpResponse, McpResponse } from "../utils/mcp-response";
 import { logger } from "../utils/logger";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function hasMetadataLikeTitle(title: string): boolean {
 	const normalized = title.trim();
 	return /^\[[^\]]{0,200}(agent:|role:|model:|\d{4}-\d{2}-\d{2}|source_)[^\]]*\]/i.test(normalized);
+}
+
+function resolveMemorySupersedes(value: string | null | undefined, db: SQLiteStore): string | null {
+	if (!value) return null;
+	if (UUID_REGEX.test(value)) return value;
+	const memory = db.memories.getByCode(value);
+	if (!memory) throw new Error(`supersedes: memory with code '${value}' not found`);
+	return memory.id;
 }
 
 export async function handleMemoryUpdate(
@@ -56,7 +66,7 @@ export async function handleMemoryUpdate(
 	if (validated.agent !== undefined) updates.agent = validated.agent;
 	if (validated.role !== undefined) updates.role = validated.role;
 	if (validated.status !== undefined) updates.status = validated.status;
-	if (validated.supersedes !== undefined) updates.supersedes = validated.supersedes;
+	if (validated.supersedes !== undefined) updates.supersedes = resolveMemorySupersedes(validated.supersedes, db);
 	if (validated.tags !== undefined) updates.tags = validated.tags;
 	if (validated.metadata !== undefined) updates.metadata = validated.metadata;
 	if (validated.is_global !== undefined) updates.is_global = validated.is_global;
