@@ -75,7 +75,7 @@ export async function handleStandardUpdate(
 			code: existing.code,
 			updatedFields: Object.keys(updates)
 		},
-		`Updated coding standard ${resolvedId}. Fields: ${Object.keys(updates).join(", ") || "none"}.`,
+		`Updated coding standard [${existing.code}] in repo "${existing.repo || "global"}". Fields: ${Object.keys(updates).join(", ") || "none"}.`,
 		{
 			structuredContentPathHint: "updatedFields",
 			includeSerializedStructuredContent: true
