@@ -56,8 +56,7 @@ export async function handleStandardStore(
 				instruction:
 					"Use 'standard-update' on the existing ID to update it. To store a distinct variant, supply a different 'version', 'language', or non-overlapping 'stack'."
 			},
-			`Rejected: conflicts with standard "${conflict.title}" (${conflict.id}). Update it via 'standard-update', or differentiate by version / language / stack.`,
-			{ structuredContentPathHint: "conflicting_standard" }
+			`Rejected: conflicts with standard "${conflict.title}" (v${conflict.version}, ${conflict.language || "any"}) [${conflict.id.slice(0, 8)}...]. Update via 'standard-update', or differentiate by version / language / stack.`
 		);
 	}
 
