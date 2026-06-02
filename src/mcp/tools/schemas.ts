@@ -12,7 +12,7 @@ export const MemoryScopeSchema = z.object({
 export const MemoryTypeSchema = z.enum(["code_fact", "decision", "mistake", "pattern", "task_archive"]);
 
 // Tool schemas
-export const MemoryStoreSchema = z.object({
+const SingleMemorySchema = z.object({
 	code: z.string().max(20).optional(),
 	type: MemoryTypeSchema,
 	title: z.string().min(3).max(255),
@@ -23,12 +23,50 @@ export const MemoryStoreSchema = z.object({
 	model: z.string().min(1),
 	scope: MemoryScopeSchema,
 	ttlDays: z.number().min(1).optional(),
-	supersedes: z.string().uuid().optional(),
+	supersedes: z.string().optional(),
+	tags: z.array(z.string()).optional(),
+	metadata: z.record(z.string(), z.any()).optional(),
+	is_global: z.boolean().default(false)
+});
+
+const SingleStandardSchema = z.object({
+	name: z.string().min(3).max(255),
+	content: z.string().min(10),
+	parent_id: z.string().optional(),
+	context: z.string().optional(),
+	version: z.string().optional(),
+	language: z.string().optional(),
+	stack: z.array(z.string()).optional(),
+	is_global: z.boolean().optional(),
+	tags: z.array(z.string().min(1)).min(1),
+	metadata: z.record(z.string(), z.any()).refine((value) => Object.keys(value).length > 0, {
+		message: "metadata must contain at least one key"
+	}),
+	agent: z.string().optional(),
+	model: z.string().optional()
+});
+
+export const MemoryStoreSchema = z.object({
+	code: z.string().max(20).optional(),
+	type: MemoryTypeSchema.optional(),
+	title: z.string().min(3).max(255).optional(),
+	content: z.string().min(10).optional(),
+	importance: z.number().min(1).max(5).optional(),
+	agent: z.string().min(1).optional(),
+	role: z.string().optional().default("unknown"),
+	model: z.string().min(1).optional(),
+	scope: MemoryScopeSchema.optional(),
+	ttlDays: z.number().min(1).optional(),
+	supersedes: z.string().optional(),
 	tags: z.array(z.string()).optional(),
 	metadata: z.record(z.string(), z.any()).optional(),
 	is_global: z.boolean().default(false),
-	structured: z.boolean().default(false)
-});
+	structured: z.boolean().default(false),
+	memories: z.array(SingleMemorySchema).min(1).optional()
+}).refine((data) => {
+	if (data.memories) return true;
+	return !!(data.type && data.title && data.content && data.importance && data.agent && data.model && data.scope);
+}, { message: "Either 'memories' array or single memory fields (type, title, content, importance, agent, model, scope) must be provided" });
 
 export const MemoryUpdateSchema = z
 	.object({
@@ -41,7 +79,7 @@ export const MemoryUpdateSchema = z
 		agent: z.string().optional(),
 		role: z.string().optional(),
 		status: z.enum(["active", "archived"]).optional(),
-		supersedes: z.string().uuid().optional(),
+		supersedes: z.string().optional(),
 		tags: z.array(z.string()).optional(),
 		metadata: z.record(z.string(), z.any()).optional(),
 		is_global: z.boolean().optional(),
@@ -153,7 +191,7 @@ const SingleTaskCreateSchema = z.object({
 	tags: z.array(z.string()).optional(),
 	metadata: z.record(z.string(), z.any()).optional(),
 	parent_id: z.string().optional(),
-	depends_on: z.string().uuid().optional(),
+	depends_on: z.string().optional(),
 	est_tokens: z.number().int().min(0).optional()
 });
 
@@ -173,7 +211,7 @@ export const TaskCreateSchema = z
 		tags: z.array(z.string()).optional(),
 		metadata: z.record(z.string(), z.any()).optional(),
 		parent_id: z.string().optional(),
-		depends_on: z.string().uuid().optional(),
+		depends_on: z.string().optional(),
 		est_tokens: z.number().int().min(0).optional(),
 		// Allow bulk tasks
 		tasks: z.array(SingleTaskCreateSchema).min(1).optional(),
@@ -211,7 +249,7 @@ export const TaskUpdateSchema = z
 		tags: z.array(z.string()).optional(),
 		metadata: z.record(z.string(), z.any()).optional(),
 		parent_id: z.string().optional(),
-		depends_on: z.string().uuid().optional(),
+		depends_on: z.string().optional(),
 		est_tokens: z.number().int().min(0).optional(),
 		commit_id: z.string().optional(),
 		changed_files: z.array(z.string()).optional(),
@@ -396,26 +434,33 @@ export const ClaimReleaseSchema = z
 // CSL (Coding Standards Library) Schemas
 export const StandardStoreSchema = z
 	.object({
-		name: z.string().min(3).max(255),
-		content: z.string().min(10),
-		parent_id: z.string().uuid().optional(),
+		name: z.string().min(3).max(255).optional(),
+		content: z.string().min(10).optional(),
+		parent_id: z.string().optional(),
 		context: z.string().optional(),
 		version: z.string().optional(),
 		language: z.string().optional(),
 		stack: z.array(z.string()).optional(),
 		repo: z.string().transform(normalizeRepo).optional(),
 		is_global: z.boolean().optional(),
-		tags: z.array(z.string().min(1)).min(1),
-		metadata: z.record(z.string(), z.any()).refine((value) => Object.keys(value).length > 0, {
-			message: "metadata must contain at least one key"
-		}),
+		tags: z.array(z.string().min(1)).min(1).optional(),
+		metadata: z
+			.record(z.string(), z.any())
+			.refine((value) => Object.keys(value).length > 0, { message: "metadata must contain at least one key" })
+			.optional(),
 		agent: z.string().optional(),
 		model: z.string().optional(),
-		structured: z.boolean().default(false)
+		structured: z.boolean().default(false),
+		standards: z.array(SingleStandardSchema).min(1).optional()
 	})
-	.refine((data) => data.is_global !== false || !!data.repo, {
-		message: "repo is required for repo-specific standards"
-	});
+	.refine((data) => {
+		if (data.standards) return true;
+		return !!(data.name && data.content && data.tags && data.metadata);
+	}, { message: "Either 'standards' array or single standard fields (name, content, tags, metadata) must be provided" })
+	.refine(
+		(data) => data.is_global !== false || !!data.repo,
+		{ message: "repo is required for repo-specific standards" }
+	);
 
 export const StandardUpdateSchema = z
 	.object({
@@ -423,7 +468,7 @@ export const StandardUpdateSchema = z
 		code: z.string().max(20).optional(),
 		name: z.string().min(3).max(255).optional(),
 		content: z.string().min(10).optional(),
-		parent_id: z.string().uuid().nullable().optional(),
+		parent_id: z.string().nullable().optional(),
 		context: z.string().optional(),
 		version: z.string().optional(),
 		language: z.string().optional(),
