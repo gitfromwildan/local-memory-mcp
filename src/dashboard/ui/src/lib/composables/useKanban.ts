@@ -63,7 +63,7 @@ export const COLUMNS: { status: string; label: string; bg: string; border: strin
 		label: "Canceled",
 		bg: "rgba(148,163,184,0.07)",
 		border: "rgba(148,163,184,0.18)",
-		icon: "x-circle",
+		icon: "circle-x",
 		color: "#94a3b8"
 	}
 ];

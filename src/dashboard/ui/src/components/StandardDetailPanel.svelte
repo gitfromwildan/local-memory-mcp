@@ -54,7 +54,11 @@
 		</label>
 		<label>
 			<span class="std-field-label">Metadata JSON</span>
-			<input class="form-input" placeholder='JSON metadata (e.g., source:dashboard)' bind:value={$handler.standardForm.metadata} />
+			<input
+				class="form-input"
+				placeholder="JSON metadata (e.g., source:dashboard)"
+				bind:value={$handler.standardForm.metadata}
+			/>
 		</label>
 	</div>
 	<label style="display:block;margin-top:12px;">
@@ -69,15 +73,15 @@
 	<div style="display:flex;gap:8px;margin-top:12px;">
 		<button
 			class="btn btn-primary"
-			disabled={$handler.standardSaving ||
-				!$handler.standardForm.name.trim() ||
-				!$handler.standardForm.content.trim()}
+			disabled={$handler.standardSaving || !$handler.standardForm.name.trim() || !$handler.standardForm.content.trim()}
 			on:click={() => handler.saveStandard(onStandardUpdated, onClose, repo)}
 		>
 			<Icon name="check" size={14} strokeWidth={2} />
 			{$handler.standardSaving ? "Saving..." : $handler.standard ? "Save Changes" : "Create Standard"}
 		</button>
-		<button class="btn btn-ghost" on:click={handler.cancelStandardEdit} disabled={$handler.standardSaving}>Cancel</button>
+		<button class="btn btn-ghost" on:click={handler.cancelStandardEdit} disabled={$handler.standardSaving}
+			>Cancel</button
+		>
 	</div>
 {:else if $handler.standard}
 	<div class="detail-header-row">
@@ -86,9 +90,10 @@
 			<div class="std-meta-row" style="margin-top:6px;">
 				<span class="std-badge std-badge-context">{$handler.standard.context}</span>
 				<span class="std-badge std-badge-version">v{$handler.standard.version}</span>
-				<span class="std-badge" class:std-badge-global={$handler.standard.is_global}
-					class:std-badge-repo={!$handler.standard.is_global}
-					>{$handler.standard.is_global ? "Global" : "Repo"}</span
+				<span
+					class="std-badge"
+					class:std-badge-global={$handler.standard.is_global}
+					class:std-badge-repo={!$handler.standard.is_global}>{$handler.standard.is_global ? "Global" : "Repo"}</span
 				>
 				{#if $handler.standard.parent_id}
 					<span class="std-badge std-badge-parent">child of {$handler.standard.parent_id}</span>
@@ -97,7 +102,7 @@
 		</div>
 		<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
 			<button class="btn btn-ghost btn-sm" on:click={handler.startStandardEdit}>
-				<Icon name="pencil" size={13} strokeWidth={2} />
+				<Icon name="edit" size={13} strokeWidth={2} />
 				Edit
 			</button>
 			<button
@@ -113,12 +118,7 @@
 	</div>
 
 	<div class="meta-grid" style="margin-bottom:16px;">
-		{#each [
-			{ label: "Language", val: $handler.standard.language || "any" },
-			{ label: "Stack", val: $handler.standard.stack.length ? $handler.standard.stack.join(", ") : "—" },
-			{ label: "Created", val: formatDate($handler.standard.created_at) },
-			{ label: "Updated", val: formatDate($handler.standard.updated_at) }
-		] as m (m.label)}
+		{#each [{ label: "Language", val: $handler.standard.language || "any" }, { label: "Stack", val: $handler.standard.stack.length ? $handler.standard.stack.join(", ") : "—" }, { label: "Created", val: formatDate($handler.standard.created_at) }, { label: "Updated", val: formatDate($handler.standard.updated_at) }] as m (m.label)}
 			<div class="meta-cell">
 				<div class="meta-label">{m.label}</div>
 				<div class="meta-value">{m.val}</div>

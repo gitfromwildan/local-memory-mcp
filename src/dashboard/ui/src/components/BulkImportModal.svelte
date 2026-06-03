@@ -150,7 +150,7 @@
 
 					{#if currentErrorMsg}
 						<div class="error-msg flex items-center gap-2">
-							<Icon name="alert-circle" size={16} />
+							<Icon name="triangle-alert" size={16} />
 							<span>{currentErrorMsg}</span>
 						</div>
 					{/if}

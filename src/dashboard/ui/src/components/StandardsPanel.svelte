@@ -301,10 +301,7 @@
 								>{formatDate(std.updated_at)}</td
 							>
 							<td class="mem-td">
-								<span
-									class="scope-chip"
-									class:scope-global={std.is_global}
-									class:scope-repo={!std.is_global}
+								<span class="scope-chip" class:scope-global={std.is_global} class:scope-repo={!std.is_global}
 									>{std.is_global ? "Global" : "Repo"}</span
 								>
 							</td>
@@ -315,7 +312,7 @@
 									title="Edit / View"
 									aria-label="Edit standard"
 								>
-									<Icon name="edit-2" size={13} strokeWidth={2} />
+									<Icon name="edit" size={13} strokeWidth={2} />
 								</button>
 								<button
 									class="row-action-btn delete-btn"
@@ -323,7 +320,7 @@
 									title="Delete"
 									aria-label="Delete standard"
 								>
-									<Icon name="trash-2" size={13} strokeWidth={2} />
+									<Icon name="trash" size={13} strokeWidth={2} />
 								</button>
 							</td>
 						</tr>
@@ -350,8 +347,11 @@
 						on:click={() => goToPage(p)}>{p}</button
 					>
 				{/each}
-				<button class="btn btn-ghost btn-sm" on:click={() => goToPage(page + 1)} disabled={page >= totalPages}>›</button>
-				<button class="btn btn-ghost btn-sm" on:click={() => goToPage(totalPages)} disabled={page >= totalPages}>»</button>
+				<button class="btn btn-ghost btn-sm" on:click={() => goToPage(page + 1)} disabled={page >= totalPages}>›</button
+				>
+				<button class="btn btn-ghost btn-sm" on:click={() => goToPage(totalPages)} disabled={page >= totalPages}
+					>»</button
+				>
 			</div>
 		</div>
 	{/if}

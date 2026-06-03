@@ -71,7 +71,7 @@
 						on:click={logic.deleteMemory}
 						title="Delete memory"
 					>
-						<Icon name="trash-2" size={13} strokeWidth={2} />
+						<Icon name="trash" size={13} strokeWidth={2} />
 						{$deleting ? "Deleting…" : "Delete"}
 					</button>
 				{/if}
@@ -86,7 +86,7 @@
 			<!-- Error banner -->
 			{#if $error}
 				<div class="mem-error">
-					<Icon name="circle-alert" size={13} strokeWidth={2} />
+					<Icon name="alert-circle" size={13} strokeWidth={2} />
 					{$error}
 				</div>
 			{/if}
@@ -242,7 +242,11 @@
 					disabled={$saving || !$form.title.trim() || !$form.content.trim()}
 					on:click={logic.save}
 				>
-					<Icon name={$saving ? "loader" : "save"} size={13} strokeWidth={2} />
+					{#if $saving}
+						<span class="btn-spinner"></span>
+					{:else}
+						<Icon name="check" size={13} strokeWidth={2} />
+					{/if}
 					{$saving ? "Saving…" : isCreate ? "Create Memory" : "Save Changes"}
 				</button>
 			</div>
@@ -597,5 +601,22 @@
 	.modal-save-btn:disabled {
 		opacity: 0.45;
 		pointer-events: none;
+	}
+
+	.btn-spinner {
+		display: inline-block;
+		width: 13px;
+		height: 13px;
+		border: 2px solid rgba(255, 255, 255, 0.3);
+		border-top-color: #fff;
+		border-radius: 50%;
+		animation: btn-spin 0.7s linear infinite;
+		flex-shrink: 0;
+	}
+
+	@keyframes btn-spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 </style>

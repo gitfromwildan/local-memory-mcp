@@ -168,12 +168,7 @@
 				<option value="rejected">Rejected</option>
 				<option value="expired">Expired</option>
 			</select>
-			<input
-				class="form-input"
-				placeholder="To agent filter"
-				bind:value={agentFilter}
-				on:input={loadHandoffs}
-			/>
+			<input class="form-input" placeholder="To agent filter" bind:value={agentFilter} on:input={loadHandoffs} />
 			<button class="btn btn-ghost" on:click={refreshCoordination}>
 				<Icon name="refresh-cw" size={14} strokeWidth={2} />
 				Refresh
@@ -233,7 +228,9 @@
 						<td colspan="8" class="mem-td" style="padding:40px;text-align:center;color:var(--color-text-muted);">
 							<Icon name="git-branch" size={22} strokeWidth={1.75} />
 							<div style="margin-top:8px;">No handoffs found</div>
-							<div style="font-size:0.78rem;margin-top:4px;">Create a handoff when work needs context transfer between agents.</div>
+							<div style="font-size:0.78rem;margin-top:4px;">
+								Create a handoff when work needs context transfer between agents.
+							</div>
 						</td>
 					</tr>
 				{:else}
@@ -265,8 +262,8 @@
 									class:status-pending={handoff.status === "pending"}
 									class:status-accepted={handoff.status === "accepted"}
 									class:status-rejected={handoff.status === "rejected"}
-									class:status-expired={handoff.status === "expired"}
-								>{handoff.status}</span>
+									class:status-expired={handoff.status === "expired"}>{handoff.status}</span
+								>
 							</td>
 							<td class="mem-td" style="font-size:0.75rem;color:var(--color-text-muted);white-space:nowrap;">
 								{formatDate(handoff.created_at)}
@@ -282,7 +279,7 @@
 									aria-label="Expire handoff"
 									disabled={handoff.status === "expired"}
 								>
-									<Icon name="trash-2" size={13} strokeWidth={2} />
+									<Icon name="trash" size={13} strokeWidth={2} />
 								</button>
 							</td>
 						</tr>
@@ -480,7 +477,9 @@
 		border: none;
 		cursor: pointer;
 		background: transparent;
-		transition: background 0.15s ease, color 0.15s ease;
+		transition:
+			background 0.15s ease,
+			color 0.15s ease;
 		color: var(--color-text-muted);
 	}
 	.delete-btn:hover {

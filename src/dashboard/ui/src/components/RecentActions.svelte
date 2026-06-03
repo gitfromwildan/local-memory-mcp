@@ -77,7 +77,7 @@
 								{#if label.sub}<div class="action-sub">{label.sub}</div>{/if}
 								<div class="bubble-meta">
 									<span class="bubble-time">{handler.formatTime(action.created_at)}</span>
-									<span class="bubble-status"><Icon name="check-check" size={12} strokeWidth={2} /></span>
+									<span class="bubble-status"><Icon name="check" size={12} strokeWidth={2} /></span>
 								</div>
 							</div>
 							<!-- Tail -->

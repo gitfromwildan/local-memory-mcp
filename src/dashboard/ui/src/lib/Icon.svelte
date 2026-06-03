@@ -1431,6 +1431,262 @@
 					d: "M10 12h4"
 				}
 			}
+		],
+		"alert-circle": [
+			{
+				tag: "circle",
+				attrs: {
+					cx: "12",
+					cy: "12",
+					r: "10"
+				}
+			},
+			{
+				tag: "line",
+				attrs: {
+					x1: "12",
+					x2: "12",
+					y1: "8",
+					y2: "12"
+				}
+			},
+			{
+				tag: "line",
+				attrs: {
+					x1: "12",
+					x2: "12.01",
+					y1: "16",
+					y2: "16"
+				}
+			}
+		],
+		eye: [
+			{
+				tag: "path",
+				attrs: {
+					d: "M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"
+				}
+			},
+			{
+				tag: "circle",
+				attrs: {
+					cx: "12",
+					cy: "12",
+					r: "3"
+				}
+			}
+		],
+		gavel: [
+			{
+				tag: "path",
+				attrs: {
+					d: "m14 14-3.5 3.5a2.12 2.12 0 0 1-3 0l-.5-.5a2.12 2.12 0 0 1 0-3L10 10"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "m11 11 4.5 4.5"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "m16 16 2.5 2.5a1.5 1.5 0 0 1 0 2.12l-.88.88a1.5 1.5 0 0 1-2.12 0L13 19"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "m3.5 6.5 6-6"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M6 3 4.5 4.5"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M9 6 7.5 7.5"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M12 9 10.5 10.5"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M16.5 13.5 15 15"
+				}
+			}
+		],
+		"message-circle": [
+			{
+				tag: "path",
+				attrs: {
+					d: "M21 12a9 9 0 0 1-9 9H3l2.1-4.2A9 9 0 1 1 21 12Z"
+				}
+			}
+		],
+		"upload-cloud": [
+			{
+				tag: "path",
+				attrs: {
+					d: "M4 14.9A7 7 0 1 1 15.7 8h.8a4.5 4.5 0 0 1 2.1 8.4"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M12 13v8"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "m8 17 4-4 4 4"
+				}
+			}
+		],
+		"file-up": [
+			{
+				tag: "path",
+				attrs: {
+					d: "M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M14 2v4a2 2 0 0 0 2 2h4"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M12 12v6"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "m15 15-3-3-3 3"
+				}
+			}
+		],
+		"file-type-2": [
+			{
+				tag: "path",
+				attrs: {
+					d: "M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M14 2v4a2 2 0 0 0 2 2h4"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M9 13v-1h6v1"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M12 12v6"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M11 18h2"
+				}
+			}
+		],
+		send: [
+			{
+				tag: "path",
+				attrs: {
+					d: "M22 2 11 13"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "m22 2-7 20-4-9-9-4Z"
+				}
+			}
+		],
+		"clock-arrow-up": [
+			{
+				tag: "circle",
+				attrs: {
+					cx: "12",
+					cy: "12",
+					r: "10"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M12 6v6l3 2"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M16 19.5a6 6 0 0 1-8 0"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M16 2v4h4"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "m14 4 2-2 2 2"
+				}
+			}
+		],
+		users: [
+			{
+				tag: "path",
+				attrs: {
+					d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+				}
+			},
+			{
+				tag: "circle",
+				attrs: {
+					cx: "9",
+					cy: "7",
+					r: "4"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M22 21v-2a4 4 0 0 0-3-3.87"
+				}
+			},
+			{
+				tag: "path",
+				attrs: {
+					d: "M16 3.13a4 4 0 0 1 0 7.75"
+				}
+			}
 		]
 	};
 </script>

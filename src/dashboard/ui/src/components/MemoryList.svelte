@@ -235,7 +235,7 @@
 									title="Edit / View"
 									aria-label="Edit memory"
 								>
-									<Icon name="edit-2" size={13} strokeWidth={2} />
+									<Icon name="edit" size={13} strokeWidth={2} />
 								</button>
 								<button
 									class="row-action-btn delete-btn"
@@ -243,7 +243,7 @@
 									title="Delete"
 									aria-label="Delete memory"
 								>
-									<Icon name="trash-2" size={13} strokeWidth={2} />
+									<Icon name="trash" size={13} strokeWidth={2} />
 								</button>
 							</td>
 						</tr>
