@@ -3,32 +3,26 @@ name: memory-index-policy
 description: Strict memory storage criteria.
 arguments: []
 agent: Memory Auditor
-version: "1.0.0"
-license: Proprietary — Personal Use Only
 category: workflows
-type: Utility
-complexity: Beginner
+version: "1.0.0"
 tags: [memory, indexing, policy, mcp]
-author: vheins
 ---
-# Memory Indexing Rules
 
-## ❌ FORBIDDEN
-- Temporary discussions/brainstorming.
-- Opinions without consensus.
-- Generic knowledge from public docs.
+## FSM
 
-## ✅ MANDATORY
-Only store durable, project-specific knowledge.
-- **Types**: `code_fact`, `decision`, `mistake`, `pattern`, `task_archive`.
-- **Content**: Architecture, UI/UX choices, stack patterns, hard-won bug fixes.
-- **Global**: Set `is_global` only if applicable across repositories (e.g., framework anti-patterns).
-- **Categorization**: Use accurate technology tags.
+Entry=G0 → S0 → S1 → S2  Exit=stored|rejected
+Guard: S(N) req S(N-1)✅
 
-## Operational Note
-- Do **not** store agent coordination state as memory.
-- Use `handoff-create`, `handoff-list`, and `handoff-update` for agent handoffs.
-- Use `task-claim` for task ownership instead of encoding claims in memory metadata.
-- File ownership/claims are coordination state; never store them as `file_claim` memory entries.
-- Use `standard-store` for normative coding standards; do not bury implementation rules in generic `decision` memories.
-- Use `standard-search` as the standards navigation layer before applying or creating standards.
+G0 | is durable + project-specific? NOT forbidden types? | content provided? | → S0 / reject | —
+S0 | classify type (code_fact|decision|mistake|pattern|task_archive) + tech tags | G0✅ | classified | —
+S1 | scope: is_global ONLY if cross-repo applicable | S0✅ | scoped | —
+S2 | store via memory-store | S1✅ | memory created | —
+
+## Forbidden (G0→reject)
+
+- Temporary discussions / brainstorming
+- Opinions without consensus
+- Generic knowledge from public docs
+- Agent coordination state (use handoff-create/handoff-list/handoff-update instead)
+- File ownership / claims (use task-claim/claim-list/claim-release instead)
+- Implementation rules (use standard-store instead)

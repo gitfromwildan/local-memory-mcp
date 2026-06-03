@@ -17,15 +17,21 @@ category: debugging
 tags: [fix, patch, bug-fix, code-change, test-case, debugging]
 ---
 
-# Skill: Fix Suggestion
+## FSM
 
-> Provide precise, minimal fix for confirmed bug.
+Entry=S0 → S1 Exit=suggestion
+Guard: S(N) req S(N-1)✅
+
+S0 | analyze inputs (tech_stack, bug_description, root_cause) | all req provided? | diagnosis | —
+S1 | produce: explanation + before/after diff(`diff ... `) + meta checklist + regression test | S0✅ | fix suggestion | —
+
+## Output Format (S1)
+
+- Explanation: Why bug happens + how fix works (prose)
+- Before/After: `diff blocks` with line comments
+- Meta checklist: config changes, migrations, dependencies
+- Verification: regression test case (code block)
 
 ## I/O
-tech_stack (req), bug_description (req), root_cause (req) → diagnosis report + fix suggestion
 
-## Rules
-1. Explanation: Why it happens and how fix works
-2. Before/After: Diff style code blocks with comments
-3. Checklist: Meta changes (config, migrations)
-4. Verification: Regression test case
+tech_stack + bug_description + root_cause → diagnosis report + fix suggestion

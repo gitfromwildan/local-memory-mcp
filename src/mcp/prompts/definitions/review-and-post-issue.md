@@ -12,43 +12,31 @@ arguments:
     description: Module, feature, or component to audit.
     required: false
 agent: Quality Auditor
-version: "1.0.0"
 category: workflows
+version: "1.0.0"
 tags: [workflow, audit, github, issue-triage]
 ---
 
-# Skill: review-and-post-issue (Audit Agent)
+## FSM
 
-## 1. ANALYSIS
-1. **Sequential Discovery**: Explore docs and code sequentially. NO parallel sub-agents.
-2. **UX Audit**: If applicable, use `chrome-dev-tools` for visual, navigation, and responsiveness checks.
-3. **Compare**: Match findings against live UI to find gaps/misalignments.
+Entry=S0 → S1 → S2 → S3 Exit=done
+Guard: S(N) req S(N-1)✅; NO code/edit/delete — GitHub+MCP tools ONLY
 
-## 🚫 FORBIDDEN: NON-EXECUTION
-DO NOT edit/create/delete files, run commands, or implement code.
-**Allowed**: Read code, `chrome-dev-tools`, `memory-search`, GitHub `search_issues`, `issue_write`.
+S0 | sequential discovery: docs → code → UI (chrome-dev-tools if applicable) | — | findings | —
+S1 | pre-issue analysis: memory-search (0.55 threshold) + search_issues dedup (comment on related if distinct) | S0✅ | context | —
+S2 | design issues: atomic, strict body format, labels | S1✅ | issue specs | —
+S3 | create via issue_write(method=create) | S2✅ | GitHub issues | —
 
-## ✅ OUTPUT: GITHUB ONLY
-ONLY call: `search_issues`, `issue_write` (method: 'create'), `memory-search`.
-No prose. No external plans.
+## Issue Body Format (STRICT — used in S2)
 
-## 2. PRE-ISSUE ANALYSIS
-1. **Search**: Call `memory-search` (Hybrid Search). 0.55 similarity threshold.
-2. **De-duplicate**: Call `search_issues`. Skip existing/redundant issues. Comment on related issues if distinct.
-
-## 3. ISSUE DESIGN & FORMAT
-- **Atomic**: One change per issue.
-- **Body** (STRICT FORMAT):
-  ### 1. Context & Analysis
-  - **Finding**: Gap trigger.
-  - **Observation**: Reasoning.
-  - **Goal**: Clear objective.
-  ### 2. Target Files & Implementation
-  - Path/layer specific changes.
-  ### 3. Acceptance & Verification
-  - **Checklist**: `[ ]` criteria.
-  - **Testing**: Scenarios.
-
-## 4. SELF-CHECK
-- ❌ No implementation.
-- ✅ ONLY GitHub/Memory tool calls.
+```
+### 1. Context & Analysis
+- **Trigger**: Instruction/finding.
+- **Observation**: Technical reasoning.
+- **Goal**: Clear objective.
+### 2. Step & Implementation
+- Detailed execution steps per path/layer.
+### 3. Acceptance & Verification
+- **Checklist**: `[ ]` criteria.
+- **Testing**: Scenarios.
+```

@@ -3,22 +3,20 @@ name: project-briefing
 description: Contextual onboarding to current repository.
 arguments: []
 agent: Session Concierge
-version: "1.0.0"
-license: Proprietary — Personal Use Only
 category: workflows
-type: Utility
-complexity: Beginner
+version: "1.0.0"
 tags: [workflow, briefing, onboarding, memory, backlog]
-author: vheins
 ---
-Initialize session in repository.
 
-Briefing Steps:
-1. **Repository**: Identify current repo from context.
-2. **Tasks**: Call `task-list` for `in_progress,pending` tasks.
-3. **Handoffs**: Call `handoff-list` with `status=pending` to surface transfer context. Treat only handoffs with unfinished work, blockers, next owner, or linked task as active.
-4. **Memory**: Call `memory-search` or `memory-recap` for recent decisions, patterns, and mistakes; hydrate important entries with `memory-detail`.
-5. **Standards**: Call `standard-search` with current repo/stack as the mandatory pre-implementation standards check. If no relevant standards are returned, say no applicable standards were found.
-6. **Core Context**: Summarize active task, pending handoffs, applicable standards, and top architectural decisions.
-7. **Priority Reminder**: Treat task priority with MCP semantics: `1=Low`, `2=Normal`, `3=Medium`, `4=High`, `5=Critical`.
-8. **Action**: Propose next steps based on the active queue.
+## FSM
+
+Entry=S0 → S1-4(parallel) → S5 → S6  Exit=briefed
+Guard: S(N) req S(N-1)✅
+
+S0 | identify current repo | — | repo context | —
+S1 | load tasks: task-list (in_progress, pending) | S0✅ | active tasks | —
+S2 | load handoffs: handoff-list (pending) — active only if unfinished work/blockers/linked task | S0✅ | pending transfers | —
+S3 | load memory: memory-search or memory-recap; hydrate via memory-detail | S0✅ | decisions, patterns, mistakes | —
+S4 | load standards: standard-search (repo, stack) | S0✅ | applicable standards | —
+S5 | summarize core: active task + pending handoffs + standards + top decisions | S1-4✅ | briefing | —
+S6 | propose next steps based on active queue; priority: 1=Low 2=Normal 3=Medium 4=High 5=Critical | S5✅ | action plan | —

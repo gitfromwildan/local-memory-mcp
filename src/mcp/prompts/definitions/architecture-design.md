@@ -14,20 +14,16 @@ category: planning
 tags: [architecture, system-design, components, data-flow, adr]
 ---
 
-# Skill: Architecture Design
+## FSM
 
-> Design system architecture for repository.
+Entry=S0 → S1 → S2 Exit=done
+Guard: S(N) req S(N-1)✅
 
-## I/O
-`tech_stack` (req), `requirements` (req) → `design/architecture/` (components, data flow, ADRs)
-
-## Rules
-- Component Diagram: Blocks & responsibilities
-- Data Flow: Information movement
-- ADRs: Rationale for patterns
-- Scalability/Reliability: Growth & failure handling
-- Security: Identity, protection, boundaries
+S0 | review tech_stack & requirements | — | component list, data flow map | —
+S1 | design: component diagram(blocks+responsibilities) + data flow(information movement) + ADRs(rationale) + scalability/reliability(growth+failure) + security(identity,protection,boundaries) | S0✅ | design decisions | —
+S2 | document artifacts | S1✅ | architecture docs | design/architecture/
 
 ## Chain
+
 ← N/A
-→ `architecture-documentation`: `design/architecture/` → as-built architecture doc
+→ architecture-documentation: design/architecture/ → as-built architecture doc

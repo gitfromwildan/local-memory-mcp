@@ -6,16 +6,19 @@ arguments:
     description: CSV tech tags (e.g., 'react, tailwind').
     required: true
 agent: Tech Scout
-version: "1.0.0"
 category: planning
+version: "1.0.0"
 tags: [planning, patterns, memory, tech-affinity]
 ---
 
-Scout for relevant knowledge using tags: [{{tags}}].
+## FSM
 
-Steps:
-1. **Search**: Call `memory-search` with `current_tags=[{{tags}}]`.
-2. **Standards**: Call `standard-search` with `stack=[{{tags}}]` to find reusable coding standards.
-3. **Hydrate**: Use `memory-detail` for relevant memory pointer rows.
-4. **Filter**: Identify applicable `pattern`, `decision`, and coding standard entries from similar stacks.
-5. **Adapt**: Explain adaptation of these practices to current project and clearly separate memory-derived guidance from standards.
+Entry=S0 → S1 → S2 → S3  Exit=scouted
+Guard: S(N) req S(N-1)✅
+
+S0 | search: memory-search (current_tags=[tags]) + standard-search (stack=[tags]) | tags provided? | pointer rows | —
+S1 | hydrate: memory-detail for relevant pointers | S0✅ | full entries | —
+S2 | filter: pattern + decision + coding standard entries from similar stacks | S1✅ | applicable knowledge | —
+S3 | adapt: explain adaptation to current project; separate memory-derived vs standards | S2✅ | adaptation guide | —
+
+Tags: {{tags}}

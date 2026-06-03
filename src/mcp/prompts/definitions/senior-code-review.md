@@ -9,28 +9,19 @@ arguments:
     description: Production context (SLA, data, conventions).
     required: false
 agent: Principal Reviewer
-version: "1.1.0"
+version: "1.2.0"
 category: coding
 tags: [code-review, production-readiness, security, observability, senior-review, architecture]
 ---
 
-Perform production-readiness review for repository.
+## FSM
 
-Stack: {{tech_stack}}
-Context: {{context}}
+Entry=S0 → S1 → S2 → S3  Exit=decision
+Guard: S(N) req S(N-1)✅; cite code evidence only; ONE fix option per finding
 
-Audit Dimensions:
-1. **Errors**: Completeness & patterns.
-2. **Security**: Validation, injection, secrets.
-3. **Performance**: Complexity, DB efficiency.
-4. **Observability**: Logs, metrics, traces.
-5. **Testing**: Coverage & quality.
-6. **Docs**: Clarity & accuracy.
+S0 | audit 6 dimensions: errors, security, performance (N+1, cache, complexity), observability (logs, metrics, traces), testing (coverage, quality), docs (clarity) | tech_stack provided? | findings[] | —
+S1 | check cross-domain invariants: lifecycle, concurrency guard, derived state, upload safety, file>500→refactor, doc hierarchy | S0✅ | invariant results | —
+S2 | assign severity: CRITICAL (bug/data loss) | HIGH (concurrency/arch) | MEDIUM (maintainability) | LOW (cosmetic) | S0-1✅ | scored findings | —
+S3 | produce: DECISION (APPROVE|REQUEST_CHANGES|NOT_READY) + SEVERITY_SCORE + MESSAGE (blockers only) | S2✅ | review decision | —
 
-Output per Finding:
-- **Severity**: P0-P3.
-- **Problem**: What & why.
-- **Location**: Path/function.
-- **Fix**: Actionable step.
-
-Verdict: READY | READY WITH MINOR FIXES | NOT READY
+Stack: {{tech_stack}} Context: {{context}}

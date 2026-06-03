@@ -3,33 +3,18 @@ name: import-github-issues
 description: Import GitHub Issues as local tasks.
 arguments: []
 agent: Integration Scout
-version: "1.0.0"
-license: Proprietary — Personal Use Only
 category: workflows
-type: Orchestrator
-complexity: Intermediate
+version: "1.0.0"
 tags: [workflow, github, issue-import, mcp]
-author: vheins
 ---
 
-## 1. FETCH
--   **Primary**: Use `github-mcp-server` to list open issues.
--   **Fallback**: Terminal `gh issue list --json number,title,body,labels,url`.
+## FSM
 
-## 2. DE-DUPLICATE
--   **Scan**: Call `task-list`. Skip issues already existing as `GH-{{number}}` task codes.
+Entry=S0 → S1 → S2 → S3 → S4  Exit=imported
+Guard: S(N) req S(N-1)✅
 
-## 3. MAP & CREATE
-For each new issue, use `task-create`:
--   **`task_code`**: `GH-{{number}}`.
--   **`title` / `description`**: EXACT match from GitHub. DO NOT summarize.
--   **`tags`**: GitHub labels.
--   **`phase`**: `backlog` or `triage`.
--   **`metadata`**: include GitHub URL.
-
-## 4. COMMENTS
--   **Fetch**: Use `issue_read` (method='get_comments').
--   **Import**: Add comments to local task via `task-update`.
-
-## 5. SUMMARY
-Report count of tasks created.
+S0 | fetch open issues: primary=github-mcp-server; fallback=`gh issue list --json number,title,body,labels,url` | — | issue list | —
+S1 | dedup via task-list (skip if GH-{number} exists) | S0✅ | filtered issues | —
+S2 | create MCP tasks: task_code=GH-{number}, EXACT title/body (DO NOT summarize), tags=labels, phase=backlog|triage, metadata=URL | S1✅ | tasks created | —
+S3 | import comments via issue_read → task-update | S2✅ | comments linked | —
+S4 | report created count | S3✅ | summary | —

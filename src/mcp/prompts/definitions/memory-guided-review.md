@@ -6,16 +6,19 @@ arguments:
     description: File to review.
     required: true
 agent: Code Auditor
-version: "1.0.0"
 category: coding
+version: "1.0.0"
 tags: [code-review, memory, compliance, mcp]
 ---
 
-Audit {{file_path}} against stored project knowledge.
+## FSM
 
-Steps:
-1. **Search Memory**: Call `memory-search` using `current_file_path='{{file_path}}'`.
-2. **Hydrate**: Call `memory-detail` for any relevant pointer row before enforcing it.
-3. **Search Standards**: Call `standard-search` with inferred language/stack/repo filters.
-4. **Evaluate**: Check for compliance with established patterns, documented mistakes, and applicable coding standards.
-5. **Feedback**: Suggest fixes for violations, citing whether the source is memory or standard.
+Entry=S0 → S1 → S2 → S3  Exit=reviewed
+Guard: S(N) req S(N-1)✅
+
+S0 | search: memory-search (file_path) + standard-search (lang, stack, repo) | file_path provided? | relevant rules | —
+S1 | hydrate: memory-detail for relevant pointers | S0✅ | full rules | —
+S2 | evaluate compliance vs patterns, documented mistakes, standards | S1✅ | violation list | —
+S3 | feedback: suggest fixes citing source (memory|standard) | S2✅ | review report | —
+
+File: {{file_path}}

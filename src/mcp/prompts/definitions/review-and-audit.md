@@ -6,55 +6,41 @@ arguments:
     description: Module, feature, or component to audit.
     required: false
 agent: Quality Auditor
-version: "1.0.0"
-license: Proprietary — Personal Use Only
 category: workflows
-type: Orchestrator
-complexity: Advanced
+version: "1.0.0"
 tags: [workflow, audit, ux, gap-analysis, mcp]
-author: vheins
 ---
-# Skill: review-and-audit (Audit Agent)
 
-## 1. ANALYSIS
-1. **Sequential Discovery**: Explore docs and code sequentially. NO parallel sub-agents.
-2. **UX Audit**: Use `chrome-dev-tools` for visual, navigation, and responsiveness checks.
-3. **Reference Audit**: Check current tool/prompt/resource definitions through code or the dashboard Reference flow.
-4. **Compare**: Match docs + code findings against live UI to find gaps/misalignments.
+## FSM
 
-## 🚫 FORBIDDEN: NON-EXECUTION
-DO NOT edit/create/delete files, run commands, or implement code.
-**Allowed**: Read code, `chrome-dev-tools`, `task-create`, `memory-store`, `task-list`, `memory-search`, `standard-search`, `handoff-list`, `handoff-update`.
+Entry=S0 → S1 → S2 → S3  Exit=done
+Guard: S(N) req S(N-1)✅; NO code/edit/delete — read+MCP tools ONLY
 
-## ✅ OUTPUT: MCP ONLY
-ONLY call MCP tools. No prose, code, or external plans.
+S0 | sequential discovery: docs → code → UI (chrome-dev-tools) | — | findings | —
+S1 | pre-task analysis: memory-search (0.55 threshold) + standard-search + handoff-list + task-list dedup | S0✅ | context | —
+S2 | design tasks: atomic, attributes (task_code, phase, priority, agent, model), strict description format | S1✅ | task specs | —
+S3 | create via task-create + log decisions via memory-store + standard-store for coding rules | S2✅ | MCP tasks | —
 
-## 2. PRE-TASK ANALYSIS
-1. **Search**: Call `memory-search` (Hybrid Search). 0.55 similarity threshold.
-2. **Standards**: Call `standard-search` before creating implementation tasks so task scope reflects applicable coding standards. If no relevant standards are returned, note that no applicable standards were found.
-3. **Handoffs**: Call `handoff-list` for pending transfer context related to the target. Treat handoffs as active only when they contain unfinished work, blockers, a next owner, or a linked task.
-4. **De-duplicate**: Call `task-list`. Skip existing/redundant tasks. Link via `parent_id`/`depends_on`.
+## Description Format (STRICT — used in S2)
 
-## 3. TASK DESIGN & FORMAT
-- **Atomic**: One change per task.
-- **Attributes**: `task_code`, `phase`, `priority`, `agent`, `model`.
-- **Priority Scale**: Use MCP ordering exactly: `1=Low`, `2=Normal`, `3=Medium`, `4=High`, `5=Critical`. `5` is the highest urgency.
-- **Description** (STRICT FORMAT):
-  ### 1. Context & Analysis
-  - **Finding**: Gap trigger.
-  - **Observation**: Reasoning.
-  - **Goal**: Clear objective.
-  ### 2. Target Files & Implementation
-  - Combined scope/steps per path/layer.
-  ### 3. Acceptance & Verification
-  - **Checklist**: `[ ]` criteria.
-  - **Testing**: Scenarios.
+```
+### 1. Context & Analysis
+- **Trigger**: Instruction/finding.
+- **Observation**: Technical reasoning.
+- **Goal**: Clear objective.
+### 2. Step & Implementation
+- Detailed execution steps per path/layer.
+### 3. Acceptance & Verification
+- **Checklist**: `[ ]` criteria.
+- **Testing**: Scenarios.
+```
 
-## 4. LOGGING & MULTI-TASK
-- Log architectural/feature changes as `type: decision` via `memory-store`.
-- Log reusable coding rules as `standard-store` only when the rule is durable and source-backed.
-- Use Parent/Child structure for complex gaps.
+## Priority Scale
 
-## 5. SELF-CHECK
-- ❌ No implementation.
-- ✅ ONLY MCP tool calls.
+`1=Low` `2=Normal` `3=Medium` `4=High` `5=Critical`
+
+## Logging
+
+- Decisions → `memory-store` (type=decision)
+- Reusable coding rules → `standard-store` (only if durable + source-backed)
+- Complex gaps → parent/child structure

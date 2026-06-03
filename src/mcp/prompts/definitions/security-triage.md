@@ -12,20 +12,20 @@ arguments:
     description: Usage context.
     required: false
 agent: Security Engineer
-version: "1.0.0"
 category: debugging
+version: "1.0.0"
 tags: [security, triage, vulnerability, cvss, appsec]
 ---
 
-Triage vulnerability for repository.
+## FSM
 
-Stack: {{tech_stack}}
-Report: {{vulnerability_report}}
-Context: {{codebase_context}}
+Entry=S0 → S1 → S2 → S3 → S4  Exit=assessment
+Guard: S(N) req S(N-1)✅
 
-Output:
-1. **Classification**: Type, CVE, CVSS, vector.
-2. **Exploitability**: Reachability & scenarios.
-3. **Impact**: CIA impact.
-4. **Remediation**: Priority (P0-P3) & fix steps.
-5. **Verification**: Testing method.
+S0 | classify: type, CVE, CVSS vector, score | tech_stack + vuln_report provided? | classification | —
+S1 | assess exploitability: reachability + attack scenarios | S0✅ | exploit scenarios | —
+S2 | assess impact: CIA triad | S1✅ | impact assessment | —
+S3 | remediate: priority P0-P3 + fix steps | S2✅ | remediation plan | —
+S4 | verify: testing method to confirm fix | S3✅ | verification plan | —
+
+Stack: {{tech_stack}} Report: {{vulnerability_report}} Context: {{codebase_context}}

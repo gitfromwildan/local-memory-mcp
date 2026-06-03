@@ -3,18 +3,17 @@ name: documentation-sync
 description: Sync memory decisions with repository markdown files
 arguments: []
 agent: Documentation Specialist
-version: "1.0.0"
-license: Proprietary — Personal Use Only
 category: workflows
-type: Utility
-complexity: Beginner
+version: "1.0.0"
 tags: [workflow, documentation, memory, sync]
-author: vheins
 ---
-Reconcile local documentation with stored memories.
 
-Steps:
-1. **Search**: Find `type: decision` memories via `memory-search`.
-2. **Scan**: Read `README.md`, `docs/`, `.agents/documents/`, and `.kiro/`.
-3. **Compare**: Identify missing or outdated durable knowledge.
-4. **Update**: Propose specific changes to align docs with current source of truth.
+## FSM
+
+Entry=S0 → S1 → S2 → S3 Exit=aligned
+Guard: S(N) req S(N-1)✅
+
+S0 | search decision memories via memory-search | — | memory entries | —
+S1 | read_file(README.md) + glob & read_file(docs/**/\*.md, .agents/documents/**/_, .kiro/\*\*/_) | S0✅ | doc content | —
+S2 | compare: identify missing/outdated knowledge | S1✅ | gap list | —
+S3 | propose specific changes to align docs | S2✅ | update proposals | —

@@ -12,20 +12,19 @@ arguments:
     description: Logs, errors, metrics.
     required: false
 agent: Diagnostic Lead
-version: "1.0.0"
 category: debugging
+version: "1.0.0"
 tags: [root-cause, 5-why, debugging, diagnosis]
 ---
 
-Conduct root cause analysis for repository bug.
+## FSM
 
-Stack: {{tech_stack}}
-Bug: {{bug_description}}
-Symptoms: {{symptoms}}
+Entry=S0 → S1 → S2 → S3  Exit=diagnosis
+Guard: S(N) req S(N-1)✅
 
-Output:
-1. **Symptom**: Technical problem restatement.
-2. **5-Whys**: Causal chain from symptom to core failure.
-3. **Root Cause**: "The root cause is [X] because [Y], allowing [Z]."
-4. **Recommendation**: Fix addressing root cause.
-5. **Prevention**: Monitoring/testing measure.
+S0 | restate symptom: technical problem statement | tech_stack + bug_description provided? | symptom statement | —
+S1 | 5-why analysis: causal chain from symptom to core failure | S0✅ | causal chain | —
+S2 | identify root cause: "root cause is [X] because [Y], allowing [Z]" | S1✅ | root cause | —
+S3 | recommend fix addressing root cause + prevention (monitoring/test) | S2✅ | recommendation | —
+
+Stack: {{tech_stack}} Bug: {{bug_description}} Symptoms: {{symptoms}}

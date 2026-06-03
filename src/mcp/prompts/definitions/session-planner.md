@@ -6,21 +6,21 @@ arguments:
     description: High-level session goal.
     required: true
 agent: Strategy Lead
-version: "1.0.0"
 category: workflows
+version: "1.0.0"
 tags: [workflow, planning, task-breakdown]
 ---
 
-Plan execution for: '{{objective}}'.
+## FSM
 
-Steps:
-1. **Orient**: Call `task-list` to avoid duplicate active/backlog work.
-2. **Standards**: Call `standard-search` for objectives that may lead to code edits, test edits, refactors, migrations, or implementation decisions. If no relevant standards are returned, state that no applicable standards were found.
-3. **Handoffs**: Call `handoff-list` for pending context that may affect sequencing. Stale pending handoffs that only summarize completed work should be closed with `handoff-update`, not planned as queue work.
-4. **Analyze**: Break into 3-7 atomic, verifiable tasks.
-5. **Phase**: Group into `research`, `implementation`, and `validation`.
-6. **Hierarchy**: Use `parent_id` / `depends_on` for sequencing.
-7. **Priority Scale**: When creating tasks, use the exact MCP scale `1=Low`, `2=Normal`, `3=Medium`, `4=High`, `5=Critical`. Higher number means higher urgency.
-8. **Create**: Use `task-create` in current repo with stable `task_code`, tags, and acceptance criteria.
+Entry=S0 → S1 → S2 → S3 → S4 → S5  Exit=planned
+Guard: S(N) req S(N-1)✅
 
-Display final plan to user.
+S0 | orient: task-list (avoid dupes) + standard-search (if code edits) + handoff-list (close stale) | objective provided? | existing state | —
+S1 | analyze: break into 3-7 atomic verifiable tasks | S0✅ | task breakdown | —
+S2 | phase: group into research / implementation / validation | S1✅ | phased tasks | —
+S3 | hierarchy: parent_id + depends_on for sequencing; priority 1-5 scale | S2✅ | structured plan | —
+S4 | create via task-create (stable task_code, tags, acceptance criteria) | S3✅ | MCP tasks | —
+S5 | display final plan to user | S4✅ | user output | —
+
+Objective: {{objective}}

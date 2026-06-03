@@ -6,19 +6,17 @@ arguments:
     description: ID of completed task.
     required: false
 agent: Knowledge Harvester
-version: "1.0.0"
 category: workflows
+version: "1.0.0"
 tags: [workflow, retrospective, memory, knowledge-management]
 ---
 
-Extract durable knowledge from task {{task_id}} for repository.
+## FSM
 
-Identify and `memory-store`:
-1. **Mistakes**: Hard-to-find bugs or environment quirks.
-2. **Decisions**: Trade-offs, library choices, architectural pivots.
-3. **Patterns**: Repeatable implementations or conventions.
+Entry=S0 → S1  Exit=stored
+Guard: S(N) req S(N-1)✅
 
-Directives:
-- Use `type: mistake | decision | pattern`.
-- Include technology tags.
-- Keep content concise.
+S0 | identify: mistakes (bugs/quirks), decisions (trade-offs/pivots), patterns (conventions) | task_id? | knowledge items | —
+S1 | store via memory-store (type=mistake|decision|pattern, include tech tags, concise) | S0✅ | durable memories | —
+
+Task: {{task_id}}
