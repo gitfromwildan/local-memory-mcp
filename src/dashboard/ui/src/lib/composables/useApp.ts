@@ -1,5 +1,6 @@
 import { writable, get, derived } from "svelte/store";
 import { api } from "../api";
+import { alertError } from "../confirm";
 import {
 	activeTab,
 	currentRepo,
@@ -254,7 +255,7 @@ export function createAppHandler(refs: {
 			refs.kanbanBoard?.loadTasks(repo);
 		} catch (e: unknown) {
 			const message = e instanceof Error ? e.message : "Unknown error";
-			alert("Failed to create task: " + message);
+			alertError("Failed to create task: " + message);
 		}
 	}
 

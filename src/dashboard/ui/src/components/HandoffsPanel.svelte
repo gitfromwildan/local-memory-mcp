@@ -4,6 +4,7 @@
 	import Icon from "../lib/Icon.svelte";
 	import DetailDrawer from "./DetailDrawer.svelte";
 	import { formatDate } from "../lib/utils";
+	import { confirmDelete } from "../lib/confirm";
 	import type { Handoff, HandoffListResult, McpToolResponse, TaskClaim } from "../lib/interfaces";
 
 	export let repo = "";
@@ -128,7 +129,7 @@
 	}
 
 	async function handleDeleteRow(handoff: Handoff) {
-		if (!confirm(`Expire handoff "${handoff.summary}"?`)) return;
+		if (!(await confirmDelete(`Expire handoff "${handoff.summary}"?`))) return;
 		try {
 			await api.callTool("handoff-update", { id: handoff.id, status: "expired", structured: true });
 			void refreshCoordination();

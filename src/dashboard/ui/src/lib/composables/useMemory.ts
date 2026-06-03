@@ -1,6 +1,7 @@
 import { writable, get } from "svelte/store";
 import { api } from "../api";
 import { currentRepo } from "../stores";
+import { confirmDelete } from "../confirm";
 import type { Memory } from "../stores";
 
 export interface MemoryForm {
@@ -131,7 +132,7 @@ export function createMemoryHandler(props: UseMemoryProps) {
 
 	async function deleteMemory() {
 		if (!currentMemory) return;
-		if (!confirm("Permanently delete this memory? This cannot be undone.")) return;
+		if (!(await confirmDelete("Permanently delete this memory? This cannot be undone."))) return;
 
 		deleting.set(true);
 		error.set("");

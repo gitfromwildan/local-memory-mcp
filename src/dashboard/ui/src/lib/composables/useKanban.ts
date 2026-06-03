@@ -4,6 +4,7 @@ import { api } from "../api";
 import { currentRepo, taskSearch } from "../stores";
 import type { Task } from "../stores";
 import { exportToJSON, exportToCSV } from "../utils";
+import { alertError } from "../confirm";
 
 export interface KanbanState {
 	loadingCols: Set<string>;
@@ -246,7 +247,7 @@ export function createKanbanHandler() {
 			}
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : "Unknown error";
-			alert("Export failed: " + message);
+			alertError("Export failed: " + message);
 		}
 	}
 

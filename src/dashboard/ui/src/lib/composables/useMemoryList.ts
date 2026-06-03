@@ -1,4 +1,5 @@
 import { get } from "svelte/store";
+import { confirmDelete, alertError } from "../confirm";
 import {
 	memories,
 	memoriesTotal,
@@ -115,27 +116,27 @@ export function createMemoryHandler() {
 
 	async function handleDeleteRow(mem: Memory, e?: MouseEvent) {
 		if (e) e.stopPropagation();
-		if (!confirm(`Delete memory "${mem.title}"?`)) return;
+		if (!(await confirmDelete(`Delete memory "${mem.title}"?`))) return;
 		try {
 			await api.deleteMemory(mem.id);
 			loadMemories();
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : "Unknown error";
-			alert("Failed to delete: " + message);
+			alertError("Failed to delete: " + message);
 		}
 	}
 
 	async function handleBulkDelete() {
 		const ids = get(selectedMemoryIds);
 		if (ids.size === 0) return;
-		if (!confirm(`Are you sure you want to delete ${ids.size} memories?`)) return;
+		if (!(await confirmDelete(`Are you sure you want to delete ${ids.size} memories?`))) return;
 		try {
 			await api.bulkMemoryAction("delete", Array.from(ids));
 			selectedMemoryIds.set(new Set());
 			loadMemories();
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : "Unknown error";
-			alert("Failed to delete: " + message);
+			alertError("Failed to delete: " + message);
 		}
 	}
 
@@ -148,7 +149,7 @@ export function createMemoryHandler() {
 			loadMemories();
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : "Unknown error";
-			alert("Failed to archive: " + message);
+			alertError("Failed to archive: " + message);
 		}
 	}
 

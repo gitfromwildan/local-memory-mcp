@@ -1,5 +1,6 @@
 import { writable, type Writable } from "svelte/store";
 import { api } from "../api";
+import { alertSuccess } from "../confirm";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -165,7 +166,7 @@ export function createBulkImport(options: {
 				count = res.count;
 			}
 
-			alert(`Imported ${count} ${options.importTarget} successfully.`);
+			alertSuccess(`Imported ${count} ${options.importTarget} successfully.`);
 			if (options.onSuccess) options.onSuccess();
 			close();
 		} catch (err) {

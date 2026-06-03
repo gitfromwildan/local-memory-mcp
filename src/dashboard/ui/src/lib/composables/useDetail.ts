@@ -1,6 +1,7 @@
 import { writable, get, derived } from "svelte/store";
 import { api } from "../api";
 import { copyToClipboard } from "../utils";
+import { confirmDelete, alertError } from "../confirm";
 import type { Memory, Task, TaskComment, CodingStandard } from "../stores";
 import type { DetailState } from "./useDetailTypes";
 import { INITIAL_STANDARD_FORM, INITIAL_HANDOFF_FORM } from "./useDetailTypes";
@@ -144,7 +145,7 @@ export function createDetailHandler() {
 
 	async function deleteComment(commentId: string, onUpdated: (task: Task) => void) {
 		const state = get({ subscribe });
-		if (!confirm("Delete this comment?")) return;
+		if (!(await confirmDelete("Delete this comment?"))) return;
 
 		try {
 			await api.deleteTaskComment(commentId);
@@ -164,40 +165,40 @@ export function createDetailHandler() {
 		const state = get({ subscribe });
 		if (!state.task) return;
 
-		if (confirm("Are you sure you want to delete this task?")) {
+		if (await confirmDelete("Are you sure you want to delete this task?")) {
 			try {
 				await api.deleteTask(state.task.id);
 				onDeleted(state.task.id);
 				onClose();
 			} catch (e: unknown) {
-				alert("Error deleting task: " + (e instanceof Error ? e.message : String(e)));
+				alertError("Error deleting task: " + (e instanceof Error ? e.message : String(e)));
 			}
 		}
 	}
 
-		return {
-			subscribe,
-			mode,
-			setMemory: (memory: Memory | null) => update((s) => ({ ...s, memory, task: null, standard: null, handoff: null })),
-			setTask: (task: Task | null) => {
-				if (task) {
-					update((s) => ({
-						...s,
-						task,
-						memory: null,
-						standard: null,
-						handoff: null,
-						editTitle: task.title,
-						editDescription: task.description || "",
-						editingTitle: false,
-						editingDescription: false,
-						newComment: "",
-						editingCommentId: null
-					}));
-				} else {
-					update((s) => ({ ...s, task: null }));
-				}
-			},
+	return {
+		subscribe,
+		mode,
+		setMemory: (memory: Memory | null) => update((s) => ({ ...s, memory, task: null, standard: null, handoff: null })),
+		setTask: (task: Task | null) => {
+			if (task) {
+				update((s) => ({
+					...s,
+					task,
+					memory: null,
+					standard: null,
+					handoff: null,
+					editTitle: task.title,
+					editDescription: task.description || "",
+					editingTitle: false,
+					editingDescription: false,
+					newComment: "",
+					editingCommentId: null
+				}));
+			} else {
+				update((s) => ({ ...s, task: null }));
+			}
+		},
 		toggleEditTitle: (val: boolean) => update((s) => ({ ...s, editingTitle: val })),
 		toggleEditDescription: (val: boolean) => update((s) => ({ ...s, editingDescription: val })),
 		setEditTitle: (val: string) => update((s) => ({ ...s, editTitle: val })),
@@ -262,7 +263,7 @@ export function createDetailHandler() {
 			if (e.key === "Escape") update((s) => ({ ...s, editingTitle: false }));
 		},
 		...standardApi,
-		...handoffApi,
+		...handoffApi
 	};
 }
 
@@ -294,7 +295,11 @@ export interface DetailHandler {
 	setStandard: (standard: import("../stores").CodingStandard | null) => void;
 	startStandardEdit: () => void;
 	cancelStandardEdit: () => void;
-	saveStandard: (onUpdated: (standard: import("../stores").CodingStandard) => void, onClose: () => void, repo: string | null) => Promise<void>;
+	saveStandard: (
+		onUpdated: (standard: import("../stores").CodingStandard) => void,
+		onClose: () => void,
+		repo: string | null
+	) => Promise<void>;
 	deleteStandard: (onDeleted: (id: string) => void, onClose: () => void) => Promise<void>;
 	handleCopyStandardContent: (text: string) => Promise<void>;
 	setHandoff: (handoff: import("../stores").Handoff | null) => void;

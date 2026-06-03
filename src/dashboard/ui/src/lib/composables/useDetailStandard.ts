@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import { api } from "../api";
 import { copyToClipboard } from "../utils";
+import { confirmDelete, alertError } from "../confirm";
 import type { CodingStandard } from "../stores";
 import type { DetailState, DetailUpdate } from "./useDetailTypes";
 import { INITIAL_STANDARD_FORM as INIT_STD } from "./useDetailTypes";
@@ -108,11 +109,7 @@ export function createDetailStandard(subscribe: (run: (s: DetailState) => void) 
 		}
 	}
 
-	async function saveStandard(
-		onUpdated: (standard: CodingStandard) => void,
-		onClose: () => void,
-		repo: string | null
-	) {
+	async function saveStandard(onUpdated: (standard: CodingStandard) => void, onClose: () => void, repo: string | null) {
 		const state = get({ subscribe });
 		const form = state.standardForm;
 		const metadata = parseMetadata(form.metadata);
@@ -171,7 +168,7 @@ export function createDetailStandard(subscribe: (run: (s: DetailState) => void) 
 	async function deleteStandard(onDeleted: (id: string) => void, onClose: () => void) {
 		const state = get({ subscribe });
 		if (!state.standard) return;
-		if (!confirm(`Delete coding standard "${state.standard.title}"?`)) return;
+		if (!(await confirmDelete(`Delete coding standard "${state.standard.title}"?`))) return;
 
 		update((s) => ({ ...s, standardDeleting: true }));
 		try {
@@ -179,7 +176,7 @@ export function createDetailStandard(subscribe: (run: (s: DetailState) => void) 
 			onDeleted(state.standard.id);
 			onClose();
 		} catch (e: unknown) {
-			alert("Error deleting standard: " + (e instanceof Error ? e.message : String(e)));
+			alertError("Error deleting standard: " + (e instanceof Error ? e.message : String(e)));
 		} finally {
 			update((s) => ({ ...s, standardDeleting: false }));
 		}
