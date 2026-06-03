@@ -13,8 +13,9 @@ tags: [workflow, github, issue-resolution, sentinel]
 
 ## FSM
 
-Entry=S0 → S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8  Exit=resolved
+Entry=S0 → S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 Exit=resolved
 Guard: S(N) req S(N-1)✅; autonomous — no permission per step
+Hint: If repo not auto-detected from issue_url, run `git remote -v` to get owner/repo from origin URL.
 
 S0 | fetch: issue_read body + ALL comments (get_comments) | issue_url provided? | raw issue + all comments | —
 S1 | analyze comments: extract requirements, hints, root cause clues, reproduction steps, error details | S0✅ | comment analysis | —

@@ -3,10 +3,10 @@ name: review-and-post-issue
 description: Audit documentation against implementation; generate GitHub issues for gaps.
 arguments:
   - name: owner
-    description: GitHub repo owner.
+    description: GitHub repo owner. (hint: run `git remote -v` to extract from origin URL)
     required: true
   - name: repo
-    description: GitHub repo name.
+    description: GitHub repo name. (hint: run `git remote -v` to extract from origin URL)
     required: true
   - name: target
     description: Module, feature, or component to audit.

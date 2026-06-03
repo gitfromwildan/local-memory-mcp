@@ -10,8 +10,9 @@ tags: [workflow, github, issue-import, mcp]
 
 ## FSM
 
-Entry=S0 → S1 → S2 → S3 → S4  Exit=imported
+Entry=S0 → S1 → S2 → S3 → S4 Exit=imported
 Guard: S(N) req S(N-1)✅
+Hint: If repo not auto-detected, run `git remote -v` to get owner/repo from origin URL.
 
 S0 | fetch open issues: primary=github-mcp-server; fallback=`gh issue list --json number,title,body,labels,url` | — | issue list | —
 S1 | dedup via task-list (skip if GH-{number} exists) | S0✅ | filtered issues | —
