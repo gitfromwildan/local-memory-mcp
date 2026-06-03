@@ -2,41 +2,44 @@
 name: server-instructions
 description: Main instructions for the MCP server
 ---
+
 Local Memory MCP — persistent memory, task coordination, and coding standards for AI agents.
 
-## When to use this server
-Use at the START of every session and before any implementation work:
-1. Call `task-list` to sync active/pending tasks for the current repository.
-2. Call `handoff-list` to check pending context transfers. Close stale handoffs with `handoff-update`.
-3. Call `memory-search` and `memory-synthesize` to hydrate architectural context before coding.
-4. Call `standard-search` before any code edit, test edit, refactor, migration, or implementation decision. This is mandatory even for small tasks; use the task intent, affected files, inferred language, stack, and repo as filters. If no relevant standards are returned, continue and state that no applicable standards were found.
+## Session Start FSM
+
+Entry=orient → hydrate → ready Guard: S(N) req S(N-1)✅
+
+S0 | task-list (active/pending) + handoff-list(pending; close stale via handoff-update) | session start? | active tasks + transfers | —
+S1 | memory-search + memory-synthesize (architectural context) + standard-search(MANDATORY before code/test/refactor/migrate — task intent, lang, stack, repo filters) | S0✅ | hydrated context | —
+S2 | continue to task or respond | S1✅ | ready | —
 
 ## Core Workflows
 
-**Memory**: `memory-search` → `memory-detail` → `memory-store` / `memory-update`
-- Store only durable knowledge (architecture, patterns, decisions, fixes).
-- Use `memory-acknowledge` after generating code from memory results.
-- Global scope only for cross-repo rules; prefer repo-specific scope.
+**Memory**: memory-search → memory-detail → memory-store | memory-update
 
-**Tasks**: `task-list` → `task-claim` → `task-update` (in_progress → completed)
-- Register planned steps via `task-create` before execution.
-- Never skip intermediate `in_progress` state before `completed`.
-- **Commit Message**: Every commit MUST include the **Task Code**, **Title**, and **Summary** in this format:
-  `type(scope): [task-code] message`
-  
-  `- [Task Title]`
-  `  [Summary Task]`
-- Completing a task auto-releases claims and expires linked handoffs.
+- Durable only (arch, patterns, decisions, fixes)
+- memory-acknowledge after code gen from memory
+- Global scope = cross-repo only; prefer repo-specific
 
-**Standards**: `standard-search` → `standard-store`
-- `standard-search` is the pre-implementation gate for code, tests, refactors, migrations, and implementation decisions.
-- One rule per entry. Treat as normative implementation contracts, not docs summaries.
+**Tasks**: task-list → task-claim → task-update(in_progress) → task-update(completed)
 
-**Handoffs/Claims**: `handoff-list` → `handoff-create` / `handoff-update` | `task-claim` / `claim-release`
-- Create handoffs only for unfinished work with concrete next owner or next steps.
-- Do NOT create handoffs as completion summaries — put those on `task-update` comments.
+- Register via task-create before execution
+- NEVER skip in_progress
+- Commit: `type(scope): [task-code] message` + `- [Title]` + `  [Summary]`
+- Complete auto-releases claims + expires linked handoffs
 
-## Available Prompts (invoke as slash commands)
+**Standards**: standard-search → standard-store
+
+- MANDATORY pre-implementation gate
+- 1 rule/entry, normative contract
+
+**Handoffs/Claims**: handoff-list → handoff-create | handoff-update | task-claim | claim-release
+
+- Create ONLY for unfinished work (concrete next owner/steps)
+- NO handoff for completion summaries → use task-update comments
+
+## Available Prompts (slash commands)
+
 - `session-planner` — orient and plan at session start
 - `task-memory-executor` — execute tasks with memory and standard enforcement
 - `senior-code-review` — full code review against stored standards
