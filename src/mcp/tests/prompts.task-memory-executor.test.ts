@@ -23,11 +23,9 @@ describe("task-memory-executor prompt", () => {
 		};
 
 		const promptText = result.messages[0].content.text;
-		expect(promptText).toContain("Dependency-ready filtering");
-		expect(promptText).toContain("Readiness re-check");
+		expect(promptText).toContain("dependency-ready filter");
 		expect(promptText).toContain("depends_on");
 		expect(promptText).toContain("parent_id");
-		expect(promptText).toContain("agent_identity");
-		expect(promptText).toContain("runner identity");
+		expect(promptText).toContain("suggested_skills");
 	});
 });

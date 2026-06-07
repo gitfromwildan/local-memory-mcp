@@ -29,7 +29,7 @@ describe("csl-scrapper prompt", () => {
 		expect(result.messages[0].content.text).toContain("https://react.dev/reference/rules/rules-of-hooks");
 		expect(result.messages[0].content.text).toContain("standard-store");
 		expect(result.messages[0].content.text).toContain("parent_id");
-		expect(result.messages[0].content.text).toContain("parent/child");
+		expect(result.messages[0].content.text).toContain("parent first");
 	});
 
 	it("includes explicit refusal guidance for unverifiable sources", async () => {
@@ -45,9 +45,8 @@ describe("csl-scrapper prompt", () => {
 		};
 
 		const promptText = result.messages[0].content.text;
-		expect(promptText).toContain("Refusal rules:");
-		expect(promptText).toContain("not documentation");
-		expect(promptText).toContain("too incomplete to verify atomic rules");
-		expect(promptText).toContain('"action": "refuse"');
+		expect(promptText).toContain("/ refuse");
+		expect(promptText).toContain("content reachable + normative?");
+		expect(promptText).toContain("Exit=stored|refused");
 	});
 });
