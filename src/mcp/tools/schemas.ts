@@ -46,27 +46,35 @@ const SingleStandardSchema = z.object({
 	model: z.string().optional()
 });
 
-export const MemoryStoreSchema = z.object({
-	code: z.string().max(20).optional(),
-	type: MemoryTypeSchema.optional(),
-	title: z.string().min(3).max(255).optional(),
-	content: z.string().min(10).optional(),
-	importance: z.number().min(1).max(5).optional(),
-	agent: z.string().min(1).optional(),
-	role: z.string().optional().default("unknown"),
-	model: z.string().min(1).optional(),
-	scope: MemoryScopeSchema.optional(),
-	ttlDays: z.number().min(1).optional(),
-	supersedes: z.string().optional(),
-	tags: z.array(z.string()).optional(),
-	metadata: z.record(z.string(), z.any()).optional(),
-	is_global: z.boolean().default(false),
-	structured: z.boolean().default(false),
-	memories: z.array(SingleMemorySchema).min(1).optional()
-}).refine((data) => {
-	if (data.memories) return true;
-	return !!(data.type && data.title && data.content && data.importance && data.agent && data.model && data.scope);
-}, { message: "Either 'memories' array or single memory fields (type, title, content, importance, agent, model, scope) must be provided" });
+export const MemoryStoreSchema = z
+	.object({
+		code: z.string().max(20).optional(),
+		type: MemoryTypeSchema.optional(),
+		title: z.string().min(3).max(255).optional(),
+		content: z.string().min(10).optional(),
+		importance: z.number().min(1).max(5).optional(),
+		agent: z.string().min(1).optional(),
+		role: z.string().optional().default("unknown"),
+		model: z.string().min(1).optional(),
+		scope: MemoryScopeSchema.optional(),
+		ttlDays: z.number().min(1).optional(),
+		supersedes: z.string().optional(),
+		tags: z.array(z.string()).optional(),
+		metadata: z.record(z.string(), z.any()).optional(),
+		is_global: z.boolean().default(false),
+		structured: z.boolean().default(false),
+		memories: z.array(SingleMemorySchema).min(1).optional()
+	})
+	.refine(
+		(data) => {
+			if (data.memories) return true;
+			return !!(data.type && data.title && data.content && data.importance && data.agent && data.model && data.scope);
+		},
+		{
+			message:
+				"Either 'memories' array or single memory fields (type, title, content, importance, agent, model, scope) must be provided"
+		}
+	);
 
 export const MemoryUpdateSchema = z
 	.object({
@@ -179,7 +187,7 @@ export const TaskStatusSchema = z.enum(["backlog", "pending", "in_progress", "co
 export const TaskPrioritySchema = z.number().min(1).max(5);
 
 const SingleTaskCreateSchema = z.object({
-	task_code: z.string().min(1),
+	task_code: z.string().min(1).optional(),
 	phase: z.string().min(1),
 	title: z.string().min(3).max(100),
 	description: z.string().min(1),
@@ -220,9 +228,9 @@ export const TaskCreateSchema = z
 	.refine(
 		(data) => {
 			if (data.tasks) return true;
-			return !!(data.task_code && data.phase && data.title && data.description);
+			return !!(data.phase && data.title && data.description);
 		},
-		{ message: "Either 'tasks' array or single task fields (task_code, phase, title, description) must be provided" }
+		{ message: "Either 'tasks' array or single task fields (phase, title, description) must be provided" }
 	);
 
 export const TaskCreateInteractiveSchema = SingleTaskCreateSchema.partial().extend({
@@ -453,14 +461,16 @@ export const StandardStoreSchema = z
 		structured: z.boolean().default(false),
 		standards: z.array(SingleStandardSchema).min(1).optional()
 	})
-	.refine((data) => {
-		if (data.standards) return true;
-		return !!(data.name && data.content && data.tags && data.metadata);
-	}, { message: "Either 'standards' array or single standard fields (name, content, tags, metadata) must be provided" })
 	.refine(
-		(data) => data.is_global !== false || !!data.repo,
-		{ message: "repo is required for repo-specific standards" }
-	);
+		(data) => {
+			if (data.standards) return true;
+			return !!(data.name && data.content && data.tags && data.metadata);
+		},
+		{ message: "Either 'standards' array or single standard fields (name, content, tags, metadata) must be provided" }
+	)
+	.refine((data) => data.is_global !== false || !!data.repo, {
+		message: "repo is required for repo-specific standards"
+	});
 
 export const StandardUpdateSchema = z
 	.object({
@@ -750,7 +760,10 @@ export const TOOL_DEFINITIONS = [
 					description: "If true, this memory is shared across all repositories"
 				},
 				ttlDays: { type: "number", minimum: 1 },
-				supersedes: { type: "string", description: "Optional memory ID (UUID) or memory code to supersede. Resolved before storing." },
+				supersedes: {
+					type: "string",
+					description: "Optional memory ID (UUID) or memory code to supersede. Resolved before storing."
+				},
 				memories: {
 					type: "array",
 					items: {
@@ -1223,7 +1236,10 @@ export const TOOL_DEFINITIONS = [
 					description:
 						"Optional parent task ID (UUID) or parent task code (e.g. TASK-001). Resolved to UUID before storing."
 				},
-				depends_on: { type: "string", description: "Optional task ID (UUID) or task code (e.g. TASK-001). Resolved to UUID before storing." },
+				depends_on: {
+					type: "string",
+					description: "Optional task ID (UUID) or task code (e.g. TASK-001). Resolved to UUID before storing."
+				},
 				est_tokens: { type: "number", minimum: 0, description: "Estimated tokens budget for this task" },
 				tasks: {
 					type: "array",
@@ -1256,7 +1272,10 @@ export const TOOL_DEFINITIONS = [
 								description:
 									"Optional parent task ID (UUID) or parent task code (e.g. TASK-001). Resolved to UUID before storing."
 							},
-							depends_on: { type: "string", description: "Optional task ID (UUID) or task code (e.g. TASK-001). Resolved to UUID before storing." },
+							depends_on: {
+								type: "string",
+								description: "Optional task ID (UUID) or task code (e.g. TASK-001). Resolved to UUID before storing."
+							},
 							est_tokens: { type: "number", minimum: 0 }
 						},
 						required: ["task_code", "phase", "title", "description"]
@@ -1335,7 +1354,10 @@ export const TOOL_DEFINITIONS = [
 					description:
 						"Optional parent task ID (UUID) or parent task code (e.g. TASK-001). Resolved to UUID before storing."
 				},
-				depends_on: { type: "string", description: "Optional task ID (UUID) or task code (e.g. TASK-001). Resolved to UUID before storing." },
+				depends_on: {
+					type: "string",
+					description: "Optional task ID (UUID) or task code (e.g. TASK-001). Resolved to UUID before storing."
+				},
 				est_tokens: {
 					type: "number",
 					minimum: 0,
@@ -1508,7 +1530,11 @@ export const TOOL_DEFINITIONS = [
 			type: "object",
 			properties: {
 				repo: { type: "string", description: "Repository name" },
-				query: { type: "string", minLength: 1, description: "Search keyword matching task code, title, or description" },
+				query: {
+					type: "string",
+					minLength: 1,
+					description: "Search keyword matching task code, title, or description"
+				},
 				status: { type: "string", description: "Optional status filter (single or comma-separated)" },
 				phase: { type: "string", description: "Filter by phase (e.g., 'research', 'implementation')" },
 				priority: { type: "number", minimum: 1, maximum: 5, description: "Filter by priority (1-5)" },
@@ -1538,7 +1564,8 @@ export const TOOL_DEFINITIONS = [
 						rows: {
 							type: "array",
 							items: { type: "array" },
-							description: "Each row: [id, task_code, title, status, priority, updated_at, phase]. Use task-detail to fetch full task."
+							description:
+								"Each row: [id, task_code, title, status, priority, updated_at, phase]. Use task-detail to fetch full task."
 						}
 					},
 					required: ["columns", "rows"]
@@ -1877,7 +1904,7 @@ export const TOOL_DEFINITIONS = [
 					description: "Array of standards for bulk creation"
 				},
 				structured: { type: "boolean", default: false }
-			},
+			}
 		},
 		outputSchema: {
 			type: "object",

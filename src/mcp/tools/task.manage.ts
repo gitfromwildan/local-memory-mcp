@@ -5,6 +5,7 @@ import { inferRepoFromSession } from "../session";
 import { extractAcceptedElicitationContent } from "../elicitation";
 import { createMcpResponse } from "../utils/mcp-response";
 import { logger } from "../utils/logger";
+import { generateNextCode } from "../utils/code-generator";
 import {
 	TaskCreateSchema,
 	TaskCreateInteractiveSchema,
@@ -273,8 +274,17 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 		const now = new Date().toISOString();
 		const codesInRequest = new Set<string>();
 
+		// First pass: auto-generate sequential codes for tasks missing a task_code
+		const batchCodes = new Set<string>();
+		for (const taskData of bulkTasks) {
+			if (!taskData.task_code) {
+				taskData.task_code = generateNextCode(repo, "task", storage, batchCodes);
+			}
+			batchCodes.add(taskData.task_code);
+		}
+
 		// Batch duplicate check: single query instead of N
-		const allCodes = bulkTasks.map((t) => t.task_code);
+		const allCodes = bulkTasks.map((t) => t.task_code as string);
 		const existingCodes = storage.tasks.getExistingTaskCodes(repo, allCodes);
 
 		const initialStats = storage.taskStats.getTaskStats(repo);
@@ -283,29 +293,28 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 		// Pre-generate UUIDs and build local code→UUID map for cross-reference resolution
 		const localCodeMap = new Map<string, string>();
 		for (const taskData of bulkTasks) {
-			localCodeMap.set(taskData.task_code, randomUUID());
+			localCodeMap.set(taskData.task_code!, randomUUID());
 		}
 
 		for (const taskData of bulkTasks) {
-			if (codesInRequest.has(taskData.task_code)) {
-				throw new Error(`Duplicate task_code in request: '${taskData.task_code}'`);
+			const code = taskData.task_code!;
+			if (codesInRequest.has(code)) {
+				throw new Error(`Duplicate task_code in request: '${code}'`);
 			}
-			if (existingCodes.has(taskData.task_code)) {
-				throw new Error(`Duplicate task_code: '${taskData.task_code}' already exists in repository '${repo}'`);
+			if (existingCodes.has(code)) {
+				throw new Error(`Duplicate task_code: '${code}' already exists in repository '${repo}'`);
 			}
-			codesInRequest.add(taskData.task_code);
+			codesInRequest.add(code);
 
 			const normalizedStatus = (taskData.status as TaskStatus) || "backlog";
 			if (normalizedStatus !== "backlog" && normalizedStatus !== "pending") {
-				throw new Error(
-					`New tasks must be 'backlog' or 'pending'. Task '${taskData.task_code}' has status '${normalizedStatus}'.`
-				);
+				throw new Error(`New tasks must be 'backlog' or 'pending'. Task '${code}' has status '${normalizedStatus}'.`);
 			}
 
 			if (normalizedStatus === "pending") {
 				if (initialStats.todo + pendingInRequestCount >= 10) {
 					throw new Error(
-						`Cannot create task '${taskData.task_code}' as 'pending'. Maximum of 10 pending tasks reached. Please use status 'backlog' for new tasks instead.`
+						`Cannot create task '${code}' as 'pending'. Maximum of 10 pending tasks reached. Please use status 'backlog' for new tasks instead.`
 					);
 				}
 			}
@@ -317,11 +326,11 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 				tags.push(phaseTag);
 			}
 
-			const taskId = localCodeMap.get(taskData.task_code)!;
+			const taskId = localCodeMap.get(code)!;
 			const task: Task = {
 				id: taskId,
 				repo,
-				task_code: taskData.task_code,
+				task_code: code,
 				phase: taskData.phase,
 				title: taskData.title,
 				description: taskData.description,
@@ -344,7 +353,7 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 				depends_on: resolveDependsOn(taskData.depends_on, repo, storage, localCodeMap)
 			};
 			tasksToInsert.push(task);
-			createdTasks.push(task.task_code);
+			createdTasks.push(code);
 			if (normalizedStatus === "pending") {
 				pendingInRequestCount++;
 			}
@@ -376,12 +385,15 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 		est_tokens
 	} = singleTask;
 
-	if (!task_code || !phase || !title || !description) {
-		throw new Error("Missing required fields for single task creation (task_code, phase, title, description)");
+	if (!phase || !title || !description) {
+		throw new Error("Missing required fields for single task creation (phase, title, description)");
 	}
 
-	if (storage.tasks.isTaskCodeDuplicate(repo, task_code)) {
-		throw new Error(`Duplicate task_code: '${task_code}' already exists in repository '${repo}'`);
+	// Auto-generate task_code if not provided
+	const resolvedCode = task_code || generateNextCode(repo, "task", storage);
+
+	if (storage.tasks.isTaskCodeDuplicate(repo, resolvedCode)) {
+		throw new Error(`Duplicate task_code: '${resolvedCode}' already exists in repository '${repo}'`);
 	}
 
 	if (status !== "backlog" && status !== "pending" && status !== undefined) {
@@ -409,7 +421,7 @@ export async function handleTaskCreate(args: unknown, storage: SQLiteStore) {
 	const task: Task = {
 		id: taskId,
 		repo,
-		task_code,
+		task_code: resolvedCode,
 		phase,
 		title,
 		description,
@@ -503,11 +515,6 @@ function buildMissingTaskSchema(task: Record<string, unknown>) {
 	addRequiredStringField(properties, required, task, "repo", {
 		title: "Repository",
 		description: "Name of the repository for this task.",
-		minLength: 1
-	});
-	addRequiredStringField(properties, required, task, "task_code", {
-		title: "Task Code",
-		description: "Unique task code in this repository.",
 		minLength: 1
 	});
 	addRequiredStringField(properties, required, task, "phase", {

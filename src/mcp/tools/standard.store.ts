@@ -5,17 +5,9 @@ import { CodingStandardEntry, VectorStore } from "../types";
 import { logger } from "../utils/logger";
 import { createMcpResponse, McpResponse } from "../utils/mcp-response";
 import { buildStandardVectorText, toContextSlug } from "./standard.shared";
+import { generateNextCode } from "../utils/code-generator";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function generateShortCode(): string {
-	const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789";
-	let code = "";
-	for (let i = 0; i < 6; i++) {
-		code += chars.charAt(Math.floor(Math.random() * chars.length));
-	}
-	return code;
-}
 
 function resolveStandardParentId(value: string | null | undefined, db: SQLiteStore): string | null {
 	if (!value) return null;
@@ -82,7 +74,7 @@ async function storeSingleStandard(
 
 	const entry: CodingStandardEntry = {
 		id: randomUUID(),
-		code: generateShortCode(),
+		code: generateNextCode(params.repo || "__global__", "standard", db),
 		title: params.name,
 		content: params.content,
 		parent_id: resolveStandardParentId(params.parent_id, db),
@@ -135,6 +127,8 @@ export async function handleStandardStore(
 	if (validated.standards) {
 		const entries: CodingStandardEntry[] = [];
 		const storedCodes: string[] = [];
+		const batchCodes = new Set<string>();
+		const standardRepo = validated.repo || "__global__";
 
 		for (const std of validated.standards) {
 			const incomingVersion = std.version || "1.0.0";
@@ -171,7 +165,8 @@ export async function handleStandardStore(
 			}
 
 			const now = new Date().toISOString();
-			const code = generateShortCode();
+			const code = generateNextCode(standardRepo, "standard", db, batchCodes);
+			batchCodes.add(code);
 			entries.push({
 				id: randomUUID(),
 				code,

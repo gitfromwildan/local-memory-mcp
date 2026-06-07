@@ -18,6 +18,11 @@ import { VectorStore } from "../types";
 describe("createRouter() — Property 11: uses provided storage", () => {
 	function makeMockDb(): SQLiteStore {
 		return {
+			db: {
+				prepare: vi.fn().mockReturnValue({
+					get: vi.fn().mockReturnValue({ max_seq: null })
+				})
+			} as never,
 			memories: {
 				insert: vi.fn(),
 				update: vi.fn(),
@@ -58,12 +63,12 @@ describe("createRouter() — Property 11: uses provided storage", () => {
 			memoryVectors: {
 				searchBySimilarity: vi.fn().mockReturnValue([]),
 				upsertVectorEmbedding: vi.fn(),
-				checkConflicts: vi.fn().mockResolvedValue(null),
+				checkConflicts: vi.fn().mockResolvedValue(null)
 			},
 			memoryArchives: {
 				archiveExpiredMemories: vi.fn().mockReturnValue(0),
 				archiveLowScoreMemories: vi.fn().mockReturnValue(0),
-				bulkDeleteMemories: vi.fn().mockReturnValue(0),
+				bulkDeleteMemories: vi.fn().mockReturnValue(0)
 			},
 			actions: {
 				logAction: vi.fn()
@@ -191,9 +196,7 @@ describe("createRouter() — Property 11: uses provided storage", () => {
 		const mockDb = makeMockDb();
 		const mockVectors = makeMockVectors();
 		const validId = "123e4567-e89b-12d3-a456-426614174000";
-		(mockDb.memories.getByIds as any).mockReturnValue([
-			{ id: validId, code: "ABC123", scope: { repo: "test-repo" } }
-		]);
+		(mockDb.memories.getByIds as any).mockReturnValue([{ id: validId, code: "ABC123", scope: { repo: "test-repo" } }]);
 		const router = createRouter(mockDb, mockVectors);
 
 		await router("tools/call", {

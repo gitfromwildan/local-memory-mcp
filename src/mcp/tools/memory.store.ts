@@ -4,21 +4,13 @@ import { SQLiteStore } from "../storage/sqlite";
 import { VectorStore, MemoryEntry } from "../types";
 import { logger } from "../utils/logger";
 import { createMcpResponse, McpResponse } from "../utils/mcp-response";
+import { generateNextCode } from "../utils/code-generator";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function hasMetadataLikeTitle(title: string): boolean {
 	const normalized = title.trim();
 	return /^\[[^\]]{0,200}(agent:|role:|model:|\d{4}-\d{2}-\d{2}|source_)[^\]]*\]/i.test(normalized);
-}
-
-function generateShortCode(): string {
-	const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-	let code = "";
-	for (let i = 0; i < 6; i++) {
-		code += chars.charAt(Math.floor(Math.random() * chars.length));
-	}
-	return code;
 }
 
 function resolveMemorySupersedes(value: string | null | undefined, db: SQLiteStore): string | null {
@@ -58,8 +50,7 @@ async function storeSingleMemory(
 
 	const now = new Date().toISOString();
 	const createdAtTime = new Date(now).getTime();
-	const expires_at =
-		params.ttlDays != null ? new Date(createdAtTime + params.ttlDays * 86400000).toISOString() : null;
+	const expires_at = params.ttlDays != null ? new Date(createdAtTime + params.ttlDays * 86400000).toISOString() : null;
 
 	const resolvedSupersedes = resolveMemorySupersedes(params.supersedes, db);
 
@@ -100,7 +91,7 @@ async function storeSingleMemory(
 
 	const entry: MemoryEntry = {
 		id: randomUUID(),
-		code: params.code || generateShortCode(),
+		code: params.code || generateNextCode(params.scope.repo, "memory", db),
 		type: params.type as MemoryEntry["type"],
 		title: params.title,
 		content: params.content,
@@ -161,6 +152,7 @@ export async function handleMemoryStore(
 		const now = new Date().toISOString();
 		const entries: MemoryEntry[] = [];
 		const storedCodes: string[] = [];
+		const batchCodes = new Set<string>();
 
 		for (const mem of validated.memories) {
 			if (hasMetadataLikeTitle(mem.title)) {
@@ -170,19 +162,12 @@ export async function handleMemoryStore(
 			}
 
 			const createdAtTime = new Date(now).getTime();
-			const expires_at =
-				mem.ttlDays != null ? new Date(createdAtTime + mem.ttlDays * 86400000).toISOString() : null;
+			const expires_at = mem.ttlDays != null ? new Date(createdAtTime + mem.ttlDays * 86400000).toISOString() : null;
 
 			const resolvedSupersedes = resolveMemorySupersedes(mem.supersedes, db);
 
 			if (!resolvedSupersedes && mem.type !== "task_archive") {
-				const conflict = await db.memoryVectors.checkConflicts(
-					mem.content,
-					mem.scope.repo,
-					mem.type,
-					vectors,
-					0.55
-				);
+				const conflict = await db.memoryVectors.checkConflicts(mem.content, mem.scope.repo, mem.type, vectors, 0.55);
 				if (conflict) {
 					return createMcpResponse(
 						{
@@ -210,7 +195,8 @@ export async function handleMemoryStore(
 				tags.push(mem.scope.language.toLowerCase());
 			}
 
-			const code = mem.code || generateShortCode();
+			const code = mem.code || generateNextCode(mem.scope.repo, "memory", db, batchCodes);
+			batchCodes.add(code);
 			entries.push({
 				id: randomUUID(),
 				code,
@@ -252,7 +238,12 @@ export async function handleMemoryStore(
 
 		const codesStr = storedCodes.length > 0 ? `: ${storedCodes.join(", ")}` : "";
 		return createMcpResponse(
-			{ success: true, repo: validated.memories[0]?.scope.repo, createdCount: validated.memories.length, codes: storedCodes },
+			{
+				success: true,
+				repo: validated.memories[0]?.scope.repo,
+				createdCount: validated.memories.length,
+				codes: storedCodes
+			},
 			`Stored ${validated.memories.length} memories${codesStr}.`,
 			{ includeSerializedStructuredContent: validated.structured }
 		);
