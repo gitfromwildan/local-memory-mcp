@@ -28,6 +28,21 @@ S2 | design issues: atomic, strict body format, labels | S1✅ | issue specs | �
 S3 | create via issue_write(method=create) | S2✅ | GitHub issues | —
 S4 | verify: confirm issue count matches gap count, all issues created on GitHub | S3✅ | verified | —
 
+## FORBIDDEN: NON-EXECUTION
+
+DO NOT edit/create/delete files, run commands, or implement code.
+Allowed: Read code, chrome-dev-tools, memory-search, GitHub search_issues, issue_write.
+
+## OUTPUT: GITHUB ONLY
+
+ONLY call: search_issues, issue_write (method: create), memory-search.
+No prose. No external plans.
+
+## SELF-CHECK
+
+- No implementation.
+- ONLY GitHub/Memory tool calls.
+
 ## Issue Body Format (STRICT — used in S2)
 
 ```

@@ -22,6 +22,16 @@ S2 | design tasks: atomic, attributes (task_code optional — auto-generated as 
 S3 | create via task-create + log decisions via memory-store + standard-store for coding rules | S2✅ | MCP tasks | —
 S4 | verify: confirm task count matches gap count, description format compliance, parent/child linkage | S3✅ | verified | —
 
+## FORBIDDEN: NON-EXECUTION
+
+DO NOT edit/create/delete files, run commands, or implement code.
+Allowed: Read code, chrome-dev-tools, task-create, memory-store, task-list, memory-search, standard-search, handoff-list, handoff-update.
+
+## SELF-CHECK
+
+- No implementation.
+- ONLY MCP tool calls.
+
 ## Description Format (STRICT — used in S2)
 
 ```
