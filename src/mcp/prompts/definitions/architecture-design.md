@@ -14,7 +14,7 @@ category: planning
 tags: [architecture, system-design, components, data-flow, adr]
 ---
 
-## FSM
+## Architecture Design
 
 Entry=S0 → S1 → S2 Exit=done
 Guard: S(N) req S(N-1)✅

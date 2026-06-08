@@ -14,7 +14,7 @@ category: coding
 tags: [code-review, production-readiness, security, observability, senior-review, architecture]
 ---
 
-## FSM
+## Senior Code Review
 
 Entry=S0 → S1 → S2 → S3  Exit=decision
 Guard: S(N) req S(N-1)✅; cite code evidence only; ONE fix option per finding

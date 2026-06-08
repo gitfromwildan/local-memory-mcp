@@ -17,7 +17,7 @@ category: debugging
 tags: [fix, patch, bug-fix, code-change, test-case, debugging]
 ---
 
-## FSM
+## Fix Suggestion
 
 Entry=S0 → S1 Exit=suggestion
 Guard: S(N) req S(N-1)✅

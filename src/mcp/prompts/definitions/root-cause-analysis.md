@@ -17,7 +17,7 @@ version: "1.0.0"
 tags: [root-cause, 5-why, debugging, diagnosis]
 ---
 
-## FSM
+## Root Cause Analysis
 
 Entry=S0 → S1 → S2 → S3  Exit=diagnosis
 Guard: S(N) req S(N-1)✅

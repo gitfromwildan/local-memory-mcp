@@ -8,7 +8,7 @@ version: "1.0.0"
 tags: [workflow, documentation, memory, sync]
 ---
 
-## FSM
+## Documentation Sync
 
 Entry=S0 → S1 → S2 → S3 Exit=aligned
 Guard: S(N) req S(N-1)✅

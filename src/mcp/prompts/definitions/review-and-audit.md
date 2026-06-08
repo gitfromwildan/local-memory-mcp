@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [workflow, audit, ux, gap-analysis, mcp]
 ---
 
-## FSM
+## Review and Audit
 
 Entry=S0 → S1 → S2 → S3 Exit=done
 Guard: S(N) req S(N-1)✅; NO code/edit/delete — read+MCP tools ONLY

@@ -11,7 +11,7 @@ version: "1.5.4"
 tags: [workflow, task-execution, memory]
 ---
 
-## FSM — Main Loop
+## Main Loop
 
 Entry=S0 → S1 → G0 → S2 → S3 → S4 → S5 → S6 → S7 → S8 Exit=exhausted|blocked
 Guard: S(N) req S(N-1)✅; dependency-ready filter (depends_on+parent_id done)
@@ -37,7 +37,7 @@ Main loop is intentionally infinite — runs until MCP task queue is fully exhau
 - **Max 2** parallel sub-agents; each executes EXACTLY 1 task
 - Fallback: sequential (1 concurrent) if no sub-agent capability
 
-## FSM — Blocker Handling
+## Blocker Handling
 
 Entry=S0 → S1 → G1|G2 → S2 Exit=unblocked|deferred
 
@@ -56,7 +56,7 @@ S2 | create fix task: code=`{parent}-FIX-{unix}`, title=`FIX: [{parent_title}] �
 | Config    | `/(config\|configuration\|setup\|env\|environment)\s+(missing\|not\s+set\|invalid)/i`                    | `DATABASE_URL not set`                            |
 | Test fail | `/(test\|build\|compile\|type\s+check)\s+(failed\|error)/i`                                              | `Type error: Property 'user' not on 'Request'`    |
 
-## FSM — Backlog Maintenance
+## Backlog Maintenance
 
 Entry=S0 → S1 Exit=promoted
 Guard: active queue empty?

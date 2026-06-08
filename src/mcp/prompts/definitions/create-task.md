@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [workflow, task-creation, planning, mcp]
 ---
 
-## FSM
+## Create Task
 
 Entry=S0 → S1 → S2 → S3 Exit=created
 Guard: S(N) req S(N-1)✅; NO code/edit/delete — MCP tools ONLY (allowed: task-create, task-list, task-detail, task-update, memory-store, memory-search, standard-search, standard-store, handoff-list, handoff-update, read)

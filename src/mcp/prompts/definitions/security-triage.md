@@ -17,7 +17,7 @@ version: "1.0.0"
 tags: [security, triage, vulnerability, cvss, appsec]
 ---
 
-## FSM
+## Security Triage
 
 Entry=S0 → S1 → S2 → S3 → S4  Exit=assessment
 Guard: S(N) req S(N-1)✅

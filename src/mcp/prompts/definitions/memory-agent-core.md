@@ -8,7 +8,7 @@ version: "1.0.0"
 tags: [memory, workflow, guardrails, mcp]
 ---
 
-## FSM — Execution Policy
+## Execution Policy
 
 Entry=S0 → S1 → S2 → S3 → S4 → S5  Exit=act
 Guard: S(N) req S(N-1)✅; NEVER contradict stored decisions without memory-update or supersedes
@@ -20,7 +20,7 @@ S3 | retrieve: memory-detail for full content if pointer rows insufficient | S2�
 S4 | select: use ONLY highly relevant memories + standards | S3✅ | filtered knowledge | —
 S5 | acknowledge: after code gen using memory → memory-acknowledge(used|irrelevant|contradictory) | code generated? | feedback | —
 
-## FSM — Creation Policy
+## Creation Policy
 
 Entry=S0 → S1  Exit=stored
 Guard: store ONLY if durable + affects future behavior; use supersedes for overrides

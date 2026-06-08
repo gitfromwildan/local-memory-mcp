@@ -8,7 +8,7 @@ version: "1.0.0"
 tags: [memory, indexing, policy, mcp]
 ---
 
-## FSM
+## Memory Index Policy
 
 Entry=G0 → S0 → S1 → S2  Exit=stored|rejected
 Guard: S(N) req S(N-1)✅

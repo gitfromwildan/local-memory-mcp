@@ -3,10 +3,10 @@ name: review-and-post-issue
 description: Audit documentation against implementation; generate GitHub issues for gaps.
 arguments:
   - name: owner
-    description: GitHub repo owner. (hint: run `git remote -v` to extract from origin URL)
+    description: "GitHub repo owner. (hint: run `git remote -v` to extract from origin URL)"
     required: true
   - name: repo
-    description: GitHub repo name. (hint: run `git remote -v` to extract from origin URL)
+    description: "GitHub repo name. (hint: run `git remote -v` to extract from origin URL)"
     required: true
   - name: target
     description: Module, feature, or component to audit.
@@ -17,7 +17,7 @@ version: "1.0.0"
 tags: [workflow, audit, github, issue-triage]
 ---
 
-## FSM
+## Review and Post Issue
 
 Entry=S0 → S1 → S2 → S3 Exit=done
 Guard: S(N) req S(N-1)✅; NO code/edit/delete — GitHub+MCP tools ONLY

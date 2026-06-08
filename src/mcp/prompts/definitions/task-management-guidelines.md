@@ -8,7 +8,7 @@ version: "1.0.0"
 tags: [workflow, tasks, status-management, mcp]
 ---
 
-## FSM — Task Lifecycle
+## Task Lifecycle
 
 Entry=S0 → S1 → S2 → S3 → S4   Exit=done|archived
 Guard: S(N) req S(N-1)✅; MUST transition backlog/pending → in_progress → completed
@@ -19,7 +19,7 @@ S2 | progress: task-update → in_progress | S1✅ | active work | —
 S3 | validate: tests pass / explicit doc why verification skipped | S2✅ | evidence | —
 S4 | complete: task-update → completed (auto-releases claims, expires handoffs, archives) | S3✅ | completion | —
 
-## FSM — Navigation
+## Navigation
 
 Entry=S0 → S1 → S2   Exit=mutated
 Guard: S(N) req S(N-1)✅

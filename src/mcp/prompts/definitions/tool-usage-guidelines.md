@@ -8,7 +8,7 @@ version: "1.0.0"
 tags: [workflow, tooling, memory, policy, mcp]
 ---
 
-## FSM — Memory Flow
+## Memory Flow
 
 Entry=S0 → S1 → S2 → S3 → S4   Exit=maintained
 Guard: S(N) req S(N-1)✅
@@ -19,7 +19,7 @@ S2 | store: memory-store (durable only, tech tags, human title, aux in metadata)
 S3 | maintain: memory-update / supersedes for changes; avoid duplicates | — | updated | —
 S4 | acknowledge: memory-acknowledge (used|irrelevant|contradictory) after code gen | code generated? | feedback | —
 
-## FSM — Standards Flow
+## Standards Flow
 
 Entry=S0 → S1 → S2   Exit=done
 Guard: S(N) req S(N-1)✅
@@ -28,7 +28,7 @@ S0 | search: standard-search mandatory before code edit/test/refactor/migrate (q
 S1 | apply precisely as implementation rules | S0✅ | compliant code | —
 S2 | store: standard-store (1 rule/entry, name, content, context, version, lang, stack, tags, scope) | — | new entry | —
 
-## FSM — Handoff & Claim Flow
+## Handoff & Claim Flow
 
 Entry=S0 → S1 → S2 → S3   Exit=resolved
 Guard: S(N) req S(N-1)✅

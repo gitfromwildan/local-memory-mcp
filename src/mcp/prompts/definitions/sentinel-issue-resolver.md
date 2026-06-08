@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [workflow, github, issue-resolution, sentinel]
 ---
 
-## FSM
+## Sentinel Issue Resolver
 
 Entry=S0 → S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 Exit=resolved
 Guard: S(N) req S(N-1)✅; autonomous — no permission per step

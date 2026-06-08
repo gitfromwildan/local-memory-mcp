@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [workflow, csl, scraping, coding-standards, mcp]
 ---
 
-## FSM
+## CSL Scrapper
 
 Entry=G0 → S0 → G1 → S1 → S2 → S3 → S4  Exit=stored|refused
 Guard: S(N) req S(N-1)✅

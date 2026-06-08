@@ -3,10 +3,10 @@ name: export-task-to-github
 description: Export local tasks to GitHub Issues
 arguments:
   - name: owner
-    description: GitHub repo owner (hint: run `git remote -v` to extract from origin URL)
+    description: "GitHub repo owner (hint: run `git remote -v` to extract from origin URL)"
     required: true
   - name: repo
-    description: GitHub repo name (hint: run `git remote -v` to extract from origin URL)
+    description: "GitHub repo name (hint: run `git remote -v` to extract from origin URL)"
     required: true
   - name: task_id
     description: Local task ID
@@ -17,7 +17,7 @@ version: "1.0.0"
 tags: [workflow, github, task-sync, mcp]
 ---
 
-## FSM
+## Export Task to GitHub
 
 Entry=S0 → S1 → G1 → S2 → S3 → S4 Exit=exported|skipped
 Guard: S(N) req S(N-1)✅; MCP + GitHub tools ONLY

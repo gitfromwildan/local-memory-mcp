@@ -8,7 +8,7 @@ version: "1.0.0"
 tags: [workflow, github, issue-import, mcp]
 ---
 
-## FSM
+## Import GitHub Issues
 
 Entry=S0 → S1 → S2 → S3 → S4 Exit=imported
 Guard: S(N) req S(N-1)✅

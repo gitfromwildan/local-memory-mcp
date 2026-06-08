@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [workflow, retrospective, memory, knowledge-management]
 ---
 
-## FSM
+## Learning Retrospective
 
 Entry=S0 → S1  Exit=stored
 Guard: S(N) req S(N-1)✅

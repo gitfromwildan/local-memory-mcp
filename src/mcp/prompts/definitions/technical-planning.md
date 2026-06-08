@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [workflow, technical-planning]
 ---
 
-## FSM
+## Technical Planning
 
 Entry=create-task → task-claim  Exit=task-update completed|blocked
 Guard: A(N) req all prev A✅

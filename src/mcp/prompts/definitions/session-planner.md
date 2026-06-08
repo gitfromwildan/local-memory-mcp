@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [workflow, planning, task-breakdown]
 ---
 
-## FSM
+## Session Planner
 
 Entry=S0 → S1 → S2 → S3 → S4 → S5 Exit=planned
 Guard: S(N) req S(N-1)✅

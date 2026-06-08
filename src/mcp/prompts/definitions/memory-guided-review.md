@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [code-review, memory, compliance, mcp]
 ---
 
-## FSM
+## Memory Guided Review
 
 Entry=S0 → S1 → S2 → S3  Exit=reviewed
 Guard: S(N) req S(N-1)✅

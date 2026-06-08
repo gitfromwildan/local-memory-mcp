@@ -5,7 +5,7 @@ description: Main instructions for the MCP server
 
 Local Memory MCP — persistent memory, task coordination, and coding standards for AI agents.
 
-## Session Start FSM
+## Session Start Mode
 
 Entry=orient → hydrate → ready Guard: S(N) req S(N-1)✅
 
@@ -40,16 +40,28 @@ S2 | continue to task or respond | S1✅ | ready | —
 
 ## Available Prompts (slash commands)
 
-- `session-planner` — orient and plan at session start
-- `task-memory-executor` — execute tasks with memory and standard enforcement
-- `senior-code-review` — full code review against stored standards
-- `memory-guided-review` — review using project memory as context
 - `architecture-design` — architectural planning and ADR generation
-- `technical-planning` — feature planning with task decomposition
-- `root-cause-analysis` — structured bug / incident investigation
-- `fix-suggestion` — propose and validate fixes
-- `security-triage` — security risk assessment
-- `sentinel-issue-resolver` — autonomous GitHub issue resolution (SENTINEL identity)
-- `learning-retrospective` — capture lessons and update memory
+- `create-task` — create structured, atomic tasks in Local Memory MCP
+- `csl-from-docs` — create atomic CSL coding standards entries from a local file or directory path
+- `csl-scrapper` — scrape trusted documentation from a URL into atomic CSL coding standards entries
 - `documentation-sync` — sync docs with current codebase state
+- `export-task-to-github` — export local tasks to GitHub Issues
+- `fix-suggestion` — propose and validate fixes
+- `import-github-issues` — import GitHub Issues as local tasks
+- `learning-retrospective` — capture lessons and update memory
+- `memory-agent-core` — behavioral contract for memory-aware agents
+- `memory-guided-review` — review using project memory as context
+- `memory-index-policy` — strict memory storage criteria
 - `project-briefing` — generate repository briefing from memory
+- `review-and-audit` — audit documentation against implementation; generate local tasks for gaps
+- `review-and-post-issue` — audit documentation against implementation; generate GitHub issues for gaps
+- `root-cause-analysis` — structured bug / incident investigation
+- `security-triage` — security risk assessment
+- `senior-code-review` — full code review against stored standards
+- `sentinel-issue-resolver` — autonomous GitHub issue resolution (SENTINEL identity)
+- `session-planner` — orient and plan at session start
+- `task-management-guidelines` — task tracking and progress management standards
+- `task-memory-executor` — execute tasks with memory and standard enforcement
+- `tech-affinity-scout` — scout best practices from similar tech projects
+- `technical-planning` — feature planning with task decomposition
+- `tool-usage-guidelines` — tool usage standards and data integrity

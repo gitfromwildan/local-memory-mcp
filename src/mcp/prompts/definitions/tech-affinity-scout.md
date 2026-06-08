@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [planning, patterns, memory, tech-affinity]
 ---
 
-## FSM
+## Tech Affinity Scout
 
 Entry=S0 → S1 → S2 → S3  Exit=scouted
 Guard: S(N) req S(N-1)✅

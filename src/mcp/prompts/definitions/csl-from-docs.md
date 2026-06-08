@@ -11,7 +11,7 @@ version: "1.0.0"
 tags: [workflow, csl, coding-standards, documentation, mcp]
 ---
 
-## FSM
+## CSL from Docs
 
 Entry=G0 → S0 → S1 → S2 → S3  Exit=stored|refused
 Guard: S(N) req S(N-1)✅

@@ -8,7 +8,7 @@ version: "1.0.0"
 tags: [workflow, briefing, onboarding, memory, backlog]
 ---
 
-## FSM
+## Project Briefing
 
 Entry=S0 → S1-4(parallel) → S5 → S6  Exit=briefed
 Guard: S(N) req S(N-1)✅
