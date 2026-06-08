@@ -13,7 +13,7 @@ tags: [workflow, github, issue-resolution, sentinel]
 
 ## Sentinel Issue Resolver
 
-Entry=S0 → S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 Exit=resolved
+Entry=S0 → S1 → S2 → S3 → S4 → S5 → S6 → S7 → S8 → S9 Exit=resolved
 Guard: S(N) req S(N-1)✅; autonomous — no permission per step
 Hint: If repo not auto-detected from issue_url, run `git remote -v` to get owner/repo from origin URL.
 
@@ -26,5 +26,6 @@ S5 | research: memory-search + standard-search + codebase exploration (trace cal
 S6 | register: task-create (link issue URL) + task-claim + task-update→in_progress | S5✅ | MCP task | —
 S7 | implement fix + validate: tests, linters, e2e | S6✅ | verified changes | —
 S8 | finalize: commit (type(scope): msg — fix #N) + task-update→completed + issue comment summary | S7✅ | resolution | —
+S9 | verify: confirm commit pushed, issue comment posted, task marked completed | S8✅ | verified | —
 
 Target: {{issue_url}}

@@ -19,13 +19,14 @@ tags: [workflow, audit, github, issue-triage]
 
 ## Review and Post Issue
 
-Entry=S0 → S1 → S2 → S3 Exit=done
+Entry=S0 → S1 → S2 → S3 → S4 Exit=done
 Guard: S(N) req S(N-1)✅; NO code/edit/delete — GitHub+MCP tools ONLY
 
 S0 | sequential discovery: docs → code → UI (chrome-dev-tools if applicable) | — | findings | —
 S1 | pre-issue analysis: memory-search (0.55 threshold) + search_issues dedup (comment on related if distinct) | S0✅ | context | —
 S2 | design issues: atomic, strict body format, labels | S1✅ | issue specs | —
 S3 | create via issue_write(method=create) | S2✅ | GitHub issues | —
+S4 | verify: confirm issue count matches gap count, all issues created on GitHub | S3✅ | verified | —
 
 ## Issue Body Format (STRICT — used in S2)
 

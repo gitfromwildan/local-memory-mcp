@@ -13,7 +13,7 @@ tags: [workflow, task-execution, memory]
 
 ## Main Loop
 
-Entry=S0 → S1 → G0 → S2 → S3 → S4 → S5 → S6 → S7 → S8 Exit=exhausted|blocked
+Entry=S0 → S1 → G0 → S2 → S3 → S4 → S5 → S6 → S7 → S8 → S9 Exit=exhausted|blocked
 Guard: S(N) req S(N-1)✅; dependency-ready filter (depends_on+parent_id done)
 
 S0 | sync: resolve identity (arg→auto `<runner>-<randomName>`, 1x reuse all loop) + task-list(ONCE) + handoff-list(pending, close stale) + audit stale in_progress(>30m, hydrate via task-detail) | — | filtered queue | —
@@ -26,6 +26,7 @@ S5 | validate: tests + linters + type-check + browser(if UI — MANDATORY: conso
 S6 | finalize: task-update→completed(evidence: inspected files, verified logic, test results) + memory-store(insights) + standard-store(rules) + handoff(if work remains — with identity) + retrospective + report | S5✅ | completion | —
 S7 | commit: `type(scope): msg — {{task_title}} {{summary_task}} {{keyword}} #N` (fix|closes|resolve, extract N from metadata/URL) | S6✅ | git commit | —
 S8 | repeat → S0 | queue not empty | next task | —
+S9 | verify: confirm commit format compliance, task updated completed, no stale handoffs remain | S8✅ | verified | —
 
 ## Design Note
 
@@ -39,13 +40,14 @@ Main loop is intentionally infinite — runs until MCP task queue is fully exhau
 
 ## Blocker Handling
 
-Entry=S0 → S1 → G1|G2 → S2 Exit=unblocked|deferred
+Entry=S0 → S1 → G1|G2 → S2 → S3 Exit=unblocked|deferred
 
 S0 | detect: task-update→blocked with reason | is blocked? | blocker comment | —
 S1 | classify: regex-match comment against patterns below | S0✅ | internal solvable | external | —
 G1 | internal solvable? | S1✅ | → S2 auto-create | —
 G2 | external? (awaiting user, API down) | S1✅→external | → keep blocked, no auto task | —
 S2 | create fix task: code=`{parent}-FIX-{unix}`, title=`FIX: [{parent_title}] — Resolve: {reason}`, priority=4(HIGH), phase=blocker-resolution, parent=current_id, depends_on=parent, tags=[blocker-fix,auto-generated], metadata={triggered_by, blocker_reason, timestamp, identity} | G1✅ | blocker fix task | —
+S3 | verify: confirm fix task created, parent task dependency linked | S2✅ | verified | —
 
 ### Blocker Regex Patterns
 
@@ -58,8 +60,9 @@ S2 | create fix task: code=`{parent}-FIX-{unix}`, title=`FIX: [{parent_title}] �
 
 ## Backlog Maintenance
 
-Entry=S0 → S1 Exit=promoted
+Entry=S0 → S1 → S2 Exit=promoted
 Guard: active queue empty?
 
 S0 | list backlog: task-list(status=backlog) | active queue empty? | backlog tasks | —
 S1 | promote top 20 by priority(5→1) to pending via task-update | S0✅ | tasks→pending | —
+S2 | verify: confirm promoted task count, check priority ordering correct | S1✅ | verified | —

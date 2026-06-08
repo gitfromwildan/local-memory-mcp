@@ -26,6 +26,7 @@ A5 | api-contract-design | G2✅ | API contract | design/api/
 G3 | approve API contracts | A5✅ | → proceed | —
 A6 | derive total_sprints from roadmap timeline+capacity → generate 1 sprint-planning task per sprint(N) + allocation audit + MCP task tree(parent/child + depends_on) | G3✅ | roadmap + sprints-1..N + audit + tasks | tasks/ + MCP
 GF | final approve — blocked if sprint-N.md missing or MCP task tree not created | A6✅ | → documentation | —
+V1 | verify: confirm all artifacts exist at documented output paths, gate approvals recorded | GF✅ | verified | —
 
 ## Optional
 

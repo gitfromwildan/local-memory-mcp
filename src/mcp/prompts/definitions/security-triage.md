@@ -19,7 +19,7 @@ tags: [security, triage, vulnerability, cvss, appsec]
 
 ## Security Triage
 
-Entry=S0 → S1 → S2 → S3 → S4  Exit=assessment
+Entry=S0 → S1 → S2 → S3 → S4 → S5  Exit=assessment
 Guard: S(N) req S(N-1)✅
 
 S0 | classify: type, CVE, CVSS vector, score | tech_stack + vuln_report provided? | classification | —
@@ -27,5 +27,6 @@ S1 | assess exploitability: reachability + attack scenarios | S0✅ | exploit sc
 S2 | assess impact: CIA triad | S1✅ | impact assessment | —
 S3 | remediate: priority P0-P3 + fix steps | S2✅ | remediation plan | —
 S4 | verify: testing method to confirm fix | S3✅ | verification plan | —
+S5 | verify: confirm remediation addresses all exploit scenarios, verification plan is actionable | S4✅ | verified | —
 
 Stack: {{tech_stack}} Report: {{vulnerability_report}} Context: {{codebase_context}}

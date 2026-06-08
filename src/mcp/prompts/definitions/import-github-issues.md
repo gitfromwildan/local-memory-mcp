@@ -10,7 +10,7 @@ tags: [workflow, github, issue-import, mcp]
 
 ## Import GitHub Issues
 
-Entry=S0 → S1 → S2 → S3 → S4 Exit=imported
+Entry=S0 → S1 → S2 → S3 → S4 → S5 Exit=imported
 Guard: S(N) req S(N-1)✅
 Hint: If repo not auto-detected, run `git remote -v` to get owner/repo from origin URL.
 
@@ -19,3 +19,4 @@ S1 | dedup via task-list (skip if GH-{number} exists) | S0✅ | filtered issues 
 S2 | create MCP tasks: task_code=GH-{number} (auto-generated as TASK-xxx if omitted), EXACT title/body (DO NOT summarize), tags=labels, phase=backlog|triage, metadata=URL | S1✅ | tasks created | —
 S3 | import comments via issue_read → task-update | S2✅ | comments linked | —
 S4 | report created count | S3✅ | summary | —
+S5 | verify: confirm created task count matches new issues, no duplicates | S4✅ | verified | —

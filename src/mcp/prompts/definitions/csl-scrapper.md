@@ -13,7 +13,7 @@ tags: [workflow, csl, scraping, coding-standards, mcp]
 
 ## CSL Scrapper
 
-Entry=G0 → S0 → G1 → S1 → S2 → S3 → S4  Exit=stored|refused
+Entry=G0 → S0 → G1 → S1 → S2 → S3 → S4 → S5  Exit=stored|refused
 Guard: S(N) req S(N-1)✅
 
 G0 | source_url provided? | source_url arg exists? | → S0 / refuse | —
@@ -23,5 +23,6 @@ S1 | extract atomic rules: 1 entry=1 rule, keep code examples, detect nav menus 
 S2 | dedup via standard-search (skip if high-confidence match; update if new source more authoritative) | S1✅ | filtered entries | —
 S3 | store via standard-store: parent first→children with parent_id; context=topic area; version=1.0.0(default); is_global=true(unless repo-specific); metadata={source_url, evidence_excerpt} | S2✅ | CSL entries stored | —
 S4 | create scrape tasks for each sub-page URL via task-create | sub-page URLs exist? | MCP tasks queued | —
+S5 | verify: confirm stored entries match extracted count, validate parent/child linkage, verify sub-page tasks created | S4✅ | verified | —
 
 Source: {{source_url}} Repo: {{current_repo}}

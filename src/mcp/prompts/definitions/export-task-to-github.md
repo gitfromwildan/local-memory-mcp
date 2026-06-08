@@ -19,7 +19,7 @@ tags: [workflow, github, task-sync, mcp]
 
 ## Export Task to GitHub
 
-Entry=S0 → S1 → G1 → S2 → S3 → S4 Exit=exported|skipped
+Entry=S0 → S1 → G1 → S2 → S3 → S4 → S5 Exit=exported|skipped
 Guard: S(N) req S(N-1)✅; MCP + GitHub tools ONLY
 
 S0 | fetch task via task-detail | task_id exists? | task data | —
@@ -28,3 +28,4 @@ G1 | dedup gate — if exists→update local task metadata with URL, DO NOT re-c
 S2 | create issue via issue_write (match title/body, append task_code+id) | G1→new | GitHub issue created | —
 S3 | post comments via add_issue_comment | S2✅ | comments transferred | —
 S4 | link: task-update with GitHub URL + comment | S3✅ | task updated | —
+S5 | verify: confirm issue exists on GitHub, check URL in task metadata | S4✅ | verified | —

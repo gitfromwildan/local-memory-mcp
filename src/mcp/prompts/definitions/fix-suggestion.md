@@ -19,11 +19,12 @@ tags: [fix, patch, bug-fix, code-change, test-case, debugging]
 
 ## Fix Suggestion
 
-Entry=S0 → S1 Exit=suggestion
+Entry=S0 → S1 → S2 Exit=suggestion
 Guard: S(N) req S(N-1)✅
 
 S0 | analyze inputs (tech_stack, bug_description, root_cause) | all req provided? | diagnosis | —
 S1 | produce: explanation + before/after diff(`diff ... `) + meta checklist + regression test | S0✅ | fix suggestion | —
+S2 | verify: confirm fix addresses root cause, test covers regression | S1✅ | verified | —
 
 ## Output Format (S1)
 
