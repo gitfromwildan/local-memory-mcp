@@ -5,7 +5,7 @@ describe("task-memory-executor prompt", () => {
 	it("is listed through prompts/list", async () => {
 		const router = createRouter({} as never, {} as never);
 
-		const result = (await router("prompts/list", {})) as {
+		const result = (await router("prompts/list", { limit: 50 })) as {
 			prompts: Array<{ name: string; description: string }>;
 		};
 

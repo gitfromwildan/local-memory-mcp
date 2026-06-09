@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2026-06-09
+
+### Added
+
+- **6 Software Engineering Analyst Roles**: New slash command prompt definitions for structured SDLC workflows:
+  - **Scrum Master** — Sprint planning, retrospectives, backlog grooming, and impediment resolution.
+  - **Business Analyst** — Stakeholder requirement extraction, user story mapping, and acceptance criteria writing.
+  - **System Analyst** — Architecture design, database schema planning, and API contract design.
+  - **QA Analyst** — Test scenario design (positive/negative/monkey/security), QA execution, and regression testing.
+  - **Data Analyst** — Data modeling, query optimization, schema planning, and migration testing.
+  - **Security Analyst** — Security triage, vulnerability assessment, penetration test planning, and threat modeling.
+- **Agent Labels**: Server instructions now display an `agent:` label next to each prompt, enabling clients to display role badges.
+
+### Changed
+
+- **Prompt Pagination**: Increased default limit from 25 to 50 to accommodate the growing prompt library.
+
 ## [0.15.0] - 2026-06-07
 
 ### Added
