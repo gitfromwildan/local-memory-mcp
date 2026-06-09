@@ -40,28 +40,36 @@ S2 | continue to task or respond | S1✅ | ready | —
 
 ## Available Prompts (slash commands)
 
-- `architecture-design` — architectural planning and ADR generation
-- `create-task` — create structured, atomic tasks in Local Memory MCP
-- `csl-from-docs` — create atomic CSL coding standards entries from a local file or directory path
-- `csl-scrapper` — scrape trusted documentation from a URL into atomic CSL coding standards entries
+### Engineering Roles
+
+- `architecture-design` — architectural planning and ADR generation (System Architect)
+- `business-analyst` — bridge business needs with technical solutions (Business Analyst)
+- `create-task` — create structured, atomic tasks in Local Memory MCP (Task Planner)
+- `csl-from-docs` — create atomic CSL coding standards entries from a local file or directory path (Documentation Processor)
+- `csl-scrapper` — scrape trusted documentation from a URL into atomic CSL coding standards entries (Documentation Scraper)
+- `data-analyst` — analyze data and generate insights for decision making (Data Analyst)
 - `documentation-sync` — sync docs with current codebase state
 - `export-task-to-github` — export local tasks to GitHub Issues
 - `fix-suggestion` — propose and validate fixes
 - `import-github-issues` — import GitHub Issues as local tasks
-- `learning-retrospective` — capture lessons and update memory
-- `memory-agent-core` — behavioral contract for memory-aware agents
+- `learning-retrospective` — capture lessons and update memory (Knowledge Harvester)
+- `memory-agent-core` — behavioral contract for memory-aware agents (Memory Guardian)
 - `memory-guided-review` — review using project memory as context
 - `memory-index-policy` — strict memory storage criteria
-- `project-briefing` — generate repository briefing from memory
+- `project-briefing` — generate repository briefing from memory (Session Concierge)
+- `qa-analyst` — design test strategies and ensure software quality (QA Analyst)
 - `review-and-audit` — audit documentation against implementation; generate local tasks for gaps
 - `review-and-post-issue` — audit documentation against implementation; generate GitHub issues for gaps
-- `root-cause-analysis` — structured bug / incident investigation
-- `security-triage` — security risk assessment
-- `senior-code-review` — full code review against stored standards
+- `root-cause-analysis` — structured bug / incident investigation (Diagnostic Lead)
+- `scrum-master` — facilitate Scrum ceremonies and remove blockers (Scrum Master)
+- `security-analyst` — perform security assessments and threat modeling (Security Analyst)
+- `security-triage` — security risk assessment (Security Engineer)
+- `senior-code-review` — full code review against stored standards (Principal Reviewer)
 - `sentinel-issue-resolver` — autonomous GitHub issue resolution (SENTINEL identity)
-- `session-planner` — orient and plan at session start
+- `session-planner` — orient and plan at session start (Strategy Lead)
+- `system-analyst` — analyze technical systems and design solution specs (System Analyst)
 - `task-management-guidelines` — task tracking and progress management standards
 - `task-memory-executor` — execute tasks with memory and standard enforcement
 - `tech-affinity-scout` — scout best practices from similar tech projects
-- `technical-planning` — feature planning with task decomposition
+- `technical-planning` — feature planning with task decomposition (Technical Architect)
 - `tool-usage-guidelines` — tool usage standards and data integrity
