@@ -67,7 +67,7 @@ export async function listPrompts(
 		metadata: p.agent ? { agent: p.agent } : undefined
 	}));
 
-	const rawLimit = typeof params?.limit === "number" && Number.isInteger(params?.limit) ? params.limit : 25;
+	const rawLimit = typeof params?.limit === "number" && Number.isInteger(params?.limit) ? params.limit : 50;
 	const limit = Math.max(1, Math.min(100, Math.trunc(rawLimit)));
 	const offset = decodeCursor(params?.cursor);
 	const sliced = allPrompts.slice(offset, offset + limit);
