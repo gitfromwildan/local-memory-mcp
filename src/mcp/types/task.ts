@@ -1,6 +1,12 @@
 export type TaskStatus = "backlog" | "pending" | "in_progress" | "completed" | "canceled" | "blocked";
 export type TaskPriority = 1 | 2 | 3 | 4 | 5;
 
+export interface TaskChild {
+	task_code: string;
+	title: string;
+	status: TaskStatus;
+}
+
 export interface TaskStats {
 	total: number;
 	backlog: number;
@@ -53,6 +59,8 @@ export interface Task {
 	coordination?: TaskCoordination;
 	comments?: TaskComment[];
 	comments_count?: number;
+	children?: TaskChild[];
+	depended_by?: TaskChild[];
 }
 
 export interface TaskComment {

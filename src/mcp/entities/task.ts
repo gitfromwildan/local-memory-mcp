@@ -1,5 +1,5 @@
 import { BaseEntity } from "../storage/base";
-import { Task, TaskComment } from "../types";
+import { Task, TaskChild, TaskComment } from "../types";
 
 export class TaskEntity extends BaseEntity {
 	private coordinationSelect(alias = "t") {
@@ -351,6 +351,20 @@ export class TaskEntity extends BaseEntity {
 
 		const row = this.get<{ count: number }>(query, params);
 		return (row?.count ?? 0) > 0;
+	}
+
+	getChildrenByParentId(id: string): TaskChild[] {
+		return this.all<TaskChild>(
+			"SELECT task_code, title, status FROM tasks WHERE parent_id = ? ORDER BY created_at ASC",
+			[id]
+		);
+	}
+
+	getDependedByTaskId(id: string): TaskChild[] {
+		return this.all<TaskChild>(
+			"SELECT task_code, title, status FROM tasks WHERE depends_on = ? ORDER BY created_at ASC",
+			[id]
+		);
 	}
 
 	getExistingTaskCodes(repo: string, codes: string[]): Set<string> {
