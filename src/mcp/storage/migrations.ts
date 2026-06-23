@@ -418,22 +418,30 @@ export class MigrationManager {
 				console.log(`Found ${dupRows.length} duplicate task_code(s). Deduplicating...`);
 				for (const dup of dupRows) {
 					// Keep the row with the latest updated_at, delete the rest
-					const rowsToDelete = this.all(
-						`SELECT id FROM tasks
-						 WHERE owner = ? AND repo = ? AND task_code = ?
-						 ORDER BY updated_at DESC
-						 OFFSET 1`,
+					// Use subquery to find IDs to delete: all rows for this (owner,repo,task_code) EXCEPT the latest
+					const idsToDelete = this.all(
+						`SELECT t1.id FROM tasks t1
+						 WHERE t1.owner = ? AND t1.repo = ? AND t1.task_code = ?
+						 AND t1.id != (
+							 SELECT t2.id FROM tasks t2
+							 WHERE t2.owner = ? AND t2.repo = ? AND t2.task_code = ?
+							 ORDER BY t2.updated_at DESC
+							 LIMIT 1
+						 )`,
+						dup.owner,
+						dup.repo,
+						dup.task_code,
 						dup.owner,
 						dup.repo,
 						dup.task_code
 					) as unknown as Array<{ id: string }>;
 
-					for (const row of rowsToDelete) {
-						// Delete comments first (FK cascade)
+					for (const row of idsToDelete) {
+						// Delete comments first (FK cascade support)
 						this.run("DELETE FROM task_comments WHERE task_id = ?", row.id);
 						this.run("DELETE FROM tasks WHERE id = ?", row.id);
 					}
-					console.log(`  Deduplicated ${dup.task_code}: kept 1, removed ${rowsToDelete.length}`);
+					console.log(`  Deduplicated ${dup.task_code}: kept 1, removed ${idsToDelete.length}`);
 				}
 			}
 
