@@ -1547,7 +1547,7 @@ export const TOOL_DEFINITIONS = [
 		name: "task-list",
 		title: "Task List",
 		description:
-			"PRIMARY navigation and search tool for tasks. Returns a compact tabular list of tasks (id, task_code, title, status, priority, updated_at, comments_count). Defaults to in_progress and pending tasks. Use 'query' to filter by code, title, or description. Use 'status' (comma-separated) for specific filters. AGENTS: call this once at start, pick ONE task, then call task-detail.",
+			"PRIMARY navigation and search tool for tasks. Returns a compact tabular list of tasks (id, task_code, title, status, priority, updated_at, comments_count). Defaults to in_progress and pending tasks. Use 'query' to filter by code, title, or description. Use 'status' (comma-separated) for specific filters, or 'all' for all statuses. AGENTS: call this once at start, pick ONE task, then call task-detail.",
 		annotations: {
 			readOnlyHint: true,
 			idempotentHint: true,
@@ -1565,7 +1565,7 @@ export const TOOL_DEFINITIONS = [
 					type: "string",
 					default: "in_progress,pending",
 					description:
-						"Comma-separated status filter (backlog, pending, in_progress, completed, canceled, blocked). Defaults to 'in_progress,pending'."
+						"Comma-separated status filter (backlog, pending, in_progress, completed, canceled, blocked) or 'all' for all statuses. Defaults to 'backlog,pending,in_progress,blocked'."
 				},
 				phase: {
 					type: "string",

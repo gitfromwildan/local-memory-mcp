@@ -404,6 +404,22 @@ export class MigrationManager {
     `);
 
 		try {
+			this.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_code_owner_repo ON tasks(owner, repo, task_code);`);
+		} catch {
+			// Check for duplicates and provide a clear error
+			const dupRows = this.all(
+				"SELECT task_code, COUNT(*) as cnt FROM tasks GROUP BY owner, repo, task_code HAVING cnt > 1"
+			);
+			if (dupRows.length > 0) {
+				const codes = dupRows.map((r: Record<string, unknown>) => `'${r.task_code}'`).join(", ");
+				throw new Error(
+					`Cannot create UNIQUE INDEX on (owner, repo, task_code): ${dupRows.length} duplicate task_code(s) found: ${codes}. Remove duplicates manually and re-run migration.`
+				);
+			}
+			throw new Error("Could not create UNIQUE INDEX on tasks(owner, repo, task_code)");
+		}
+
+		try {
 			this.run("UPDATE tasks SET task_code = substr(id, 1, 8) WHERE task_code IS NULL");
 		} catch {
 			// Ignore if column doesn't exist

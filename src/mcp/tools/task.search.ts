@@ -1,4 +1,4 @@
-import { TaskSearchSchema } from "./schemas";
+import { TaskSearchSchema, TaskStatusSchema } from "./schemas";
 import { SQLiteStore } from "../storage/sqlite";
 import { Task } from "../types";
 import { logger } from "../utils/logger";
@@ -30,7 +30,14 @@ export async function handleTaskSearch(args: unknown, storage: SQLiteStore): Pro
 			tasks = storage.tasks.getTasksByRepo(owner, repo, status, undefined, undefined, query);
 		}
 	} else {
-		tasks = storage.tasks.getTasksByRepo(owner, repo, undefined, undefined, undefined, query);
+		tasks = storage.tasks.getTasksByMultipleStatuses(
+			owner,
+			repo,
+			[...TaskStatusSchema.options],
+			undefined,
+			undefined,
+			query
+		);
 	}
 
 	if (phase) {

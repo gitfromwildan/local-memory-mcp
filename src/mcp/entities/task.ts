@@ -1,6 +1,11 @@
 import { BaseEntity } from "../storage/base";
 import { Task, TaskChild, TaskComment } from "../types";
 
+// Type guard for SQLite error objects that have a `code` property
+function isSqliteError(err: unknown): err is { code: string; message: string } {
+	return err instanceof Error && typeof (err as unknown as Record<string, unknown>).code === "string";
+}
+
 export class TaskEntity extends BaseEntity {
 	private coordinationSelect(alias = "t") {
 		return `
@@ -17,40 +22,54 @@ export class TaskEntity extends BaseEntity {
 	}
 
 	insertTask(task: Task): void {
-		this.run(
-			`INSERT INTO tasks (
-				id, repo, owner, task_code, phase, title, description, status, priority,
-				agent, role, doc_path, created_at, updated_at, finished_at, canceled_at, tags, suggested_skills, metadata, parent_id, depends_on, est_tokens, in_progress_at,
-				commit_id, changed_files
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			[
-				task.id,
-				task.repo,
-				task.owner || "",
-				task.task_code,
-				task.phase || null,
-				task.title,
-				task.description || null,
-				task.status || "backlog",
-				task.priority || 3,
-				task.agent || "unknown",
-				task.role || "unknown",
-				task.doc_path || null,
-				task.created_at,
-				task.updated_at,
-				task.finished_at || null,
-				task.canceled_at || null,
-				task.tags ? JSON.stringify(task.tags) : null,
-				task.suggested_skills ? JSON.stringify(task.suggested_skills) : null,
-				task.metadata ? JSON.stringify(task.metadata) : null,
-				task.parent_id || null,
-				task.depends_on || null,
-				task.est_tokens || 0,
-				task.in_progress_at || null,
-				task.commit_id || null,
-				task.changed_files ? JSON.stringify(task.changed_files) : null
-			]
-		);
+		try {
+			this.run(
+				`INSERT INTO tasks (
+					id, repo, owner, task_code, phase, title, description, status, priority,
+					agent, role, doc_path, created_at, updated_at, finished_at, canceled_at, tags, suggested_skills, metadata, parent_id, depends_on, est_tokens, in_progress_at,
+					commit_id, changed_files
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				[
+					task.id,
+					task.repo,
+					task.owner || "",
+					task.task_code,
+					task.phase || null,
+					task.title,
+					task.description || null,
+					task.status || "backlog",
+					task.priority || 3,
+					task.agent || "unknown",
+					task.role || "unknown",
+					task.doc_path || null,
+					task.created_at,
+					task.updated_at,
+					task.finished_at || null,
+					task.canceled_at || null,
+					task.tags ? JSON.stringify(task.tags) : null,
+					task.suggested_skills ? JSON.stringify(task.suggested_skills) : null,
+					task.metadata ? JSON.stringify(task.metadata) : null,
+					task.parent_id || null,
+					task.depends_on || null,
+					task.est_tokens || 0,
+					task.in_progress_at || null,
+					task.commit_id || null,
+					task.changed_files ? JSON.stringify(task.changed_files) : null
+				]
+			);
+		} catch (err: unknown) {
+			this.handleDuplicateTaskCode(err, task.task_code, task.repo);
+		}
+	}
+
+	private handleDuplicateTaskCode(err: unknown, taskCode: string, repo: string): void {
+		if (isSqliteError(err) && err.code === "SQLITE_CONSTRAINT_UNIQUE") {
+			throw new Error(
+				`Duplicate task_code: '${taskCode}' already exists in repository '${repo}'. The task_code must be unique within the repository.`
+			);
+		}
+		// For any other SQLITE_CONSTRAINT (FK, PK) or non-SQLite errors, re-throw
+		throw err;
 	}
 
 	updateTask(id: string, updates: Partial<Task> & { comment?: string; model?: string }): void {
@@ -163,14 +182,19 @@ export class TaskEntity extends BaseEntity {
 	}
 
 	getTaskByCode(owner: string, repo: string, taskCode: string): Task | null {
+		const params: unknown[] = [repo, taskCode];
+		const ownerClause = owner ? "t.owner = ? AND " : "";
+		if (owner) {
+			params.unshift(owner);
+		}
 		const row = this.get<Record<string, unknown>>(
 			`SELECT t.*, d.task_code as depends_on_code, p.task_code as parent_code,
 				${this.coordinationSelect("t")}
 			 FROM tasks t 
 			 LEFT JOIN tasks d ON t.depends_on = d.id 
 			 LEFT JOIN tasks p ON t.parent_id = p.id 
-			 WHERE t.owner = ? AND t.repo = ? AND t.task_code = ?`,
-			[owner, repo, taskCode]
+			 WHERE ${ownerClause}t.repo = ? AND t.task_code = ?`,
+			params
 		);
 		return row
 			? {
@@ -353,8 +377,13 @@ export class TaskEntity extends BaseEntity {
 	}
 
 	isTaskCodeDuplicate(owner: string, repo: string, task_code: string, excludeId?: string): boolean {
-		let query = "SELECT COUNT(*) as count FROM tasks WHERE owner = ? AND repo = ? AND task_code = ?";
-		const params: (string | number)[] = [owner, repo, task_code];
+		let query = "SELECT COUNT(*) as count FROM tasks WHERE repo = ? AND task_code = ?";
+		const params: (string | number)[] = [repo, task_code];
+
+		if (owner) {
+			query = "SELECT COUNT(*) as count FROM tasks WHERE owner = ? AND repo = ? AND task_code = ?";
+			params.unshift(owner);
+		}
 
 		if (excludeId) {
 			query += " AND id != ?";
@@ -382,9 +411,14 @@ export class TaskEntity extends BaseEntity {
 	getExistingTaskCodes(owner: string, repo: string, codes: string[]): Set<string> {
 		if (codes.length === 0) return new Set();
 		const placeholders = codes.map(() => "?").join(",");
+		const params: (string | number)[] = [repo, ...codes];
+		const ownerClause = owner ? "owner = ? AND " : "";
+		if (owner) {
+			params.unshift(owner);
+		}
 		const rows = this.all<{ task_code: string }>(
-			`SELECT task_code FROM tasks WHERE owner = ? AND repo = ? AND task_code IN (${placeholders})`,
-			[owner, repo, ...codes]
+			`SELECT task_code FROM tasks WHERE ${ownerClause}repo = ? AND task_code IN (${placeholders})`,
+			params
 		);
 		return new Set(rows.map((r) => r.task_code));
 	}
