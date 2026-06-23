@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.1] - 2026-06-23
+
+### Fixed
+
+- **Required `owner` Parameter**: Fixed 5 MCP tool schemas where `owner` was optional with `default("")`, causing SQL queries to silently return no results. `task-detail`, `task-update`, `task-delete`, `claim-release`, and `standard-store` now require a non-empty `owner` string. MCP input schemas updated to expose the `owner` parameter.
+- **Argument Order Bug**: Fixed `isTaskCodeDuplicate` call in `task.manage.ts` that was passing `repo` in the `owner` parameter position, silently disabling duplicate task code detection.
+- **Wrong Owner Attribution**: Fixed `handoff.manage.ts` that was storing the repo name (`owner: repo`) instead of the actual owner (`owner: owner`) in task comments during claim operations.
+
 ## [0.17.0] - 2026-06-23
 
 ### Added
