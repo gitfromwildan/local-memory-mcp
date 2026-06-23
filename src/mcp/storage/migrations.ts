@@ -3,16 +3,16 @@ import Database from "better-sqlite3";
 export class MigrationManager {
 	constructor(private db: Database.Database) {}
 
-	private run(sql: string): void {
-		this.db.prepare(sql).run();
+	private run(sql: string, ...params: unknown[]): void {
+		this.db.prepare(sql).run(...params);
 	}
 
 	private exec(sql: string): void {
 		this.db.exec(sql);
 	}
 
-	private all(sql: string): Record<string, unknown>[] {
-		return this.db.prepare(sql).all() as Record<string, unknown>[];
+	private all(sql: string, ...params: unknown[]): Record<string, unknown>[] {
+		return this.db.prepare(sql).all(...params) as Record<string, unknown>[];
 	}
 
 	private get(sql: string): Record<string, unknown> | undefined {
@@ -406,17 +406,40 @@ export class MigrationManager {
 		try {
 			this.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_code_owner_repo ON tasks(owner, repo, task_code);`);
 		} catch {
-			// Check for duplicates and provide a clear error
-			const dupRows = this.all(
-				"SELECT task_code, COUNT(*) as cnt FROM tasks GROUP BY owner, repo, task_code HAVING cnt > 1"
-			);
+			// Deduplicate: for each duplicate (owner, repo, task_code), keep the row with the latest updated_at
+			const dupRows = this.all(`
+				SELECT task_code, owner, repo, COUNT(*) as cnt
+				FROM tasks
+				GROUP BY owner, repo, task_code
+				HAVING cnt > 1
+			`) as unknown as Array<{ task_code: string; owner: string; repo: string; cnt: number }>;
+
 			if (dupRows.length > 0) {
-				const codes = dupRows.map((r: Record<string, unknown>) => `'${r.task_code}'`).join(", ");
-				throw new Error(
-					`Cannot create UNIQUE INDEX on (owner, repo, task_code): ${dupRows.length} duplicate task_code(s) found: ${codes}. Remove duplicates manually and re-run migration.`
-				);
+				console.log(`Found ${dupRows.length} duplicate task_code(s). Deduplicating...`);
+				for (const dup of dupRows) {
+					// Keep the row with the latest updated_at, delete the rest
+					const rowsToDelete = this.all(
+						`SELECT id FROM tasks
+						 WHERE owner = ? AND repo = ? AND task_code = ?
+						 ORDER BY updated_at DESC
+						 OFFSET 1`,
+						dup.owner,
+						dup.repo,
+						dup.task_code
+					) as unknown as Array<{ id: string }>;
+
+					for (const row of rowsToDelete) {
+						// Delete comments first (FK cascade)
+						this.run("DELETE FROM task_comments WHERE task_id = ?", row.id);
+						this.run("DELETE FROM tasks WHERE id = ?", row.id);
+					}
+					console.log(`  Deduplicated ${dup.task_code}: kept 1, removed ${rowsToDelete.length}`);
+				}
 			}
-			throw new Error("Could not create UNIQUE INDEX on tasks(owner, repo, task_code)");
+
+			// Retry creating the unique index
+			this.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_code_owner_repo ON tasks(owner, repo, task_code);`);
+			console.log("UNIQUE INDEX on (owner, repo, task_code) created after deduplication.");
 		}
 
 		try {

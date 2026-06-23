@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Argument Order Bug**: Fixed `isTaskCodeDuplicate` call in `task.manage.ts` that was passing `repo` in the `owner` parameter position, silently disabling duplicate task code detection.
 - **Wrong Owner Attribution**: Fixed `handoff.manage.ts` that was storing the repo name (`owner: repo`) instead of the actual owner (`owner: owner`) in task comments during claim operations.
 
+## [0.18.3] - 2026-06-23
+
+### Fixed
+
+- **Migration Auto-Deduplication**: Fixed migration to automatically deduplicate existing (owner, repo, task_code) rows before creating the UNIQUE INDEX, instead of throwing an error and blocking startup.
+
 ## [0.18.2] - 2026-06-23
 
 ### Fixed
