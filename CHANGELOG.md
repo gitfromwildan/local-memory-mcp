@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Argument Order Bug**: Fixed `isTaskCodeDuplicate` call in `task.manage.ts` that was passing `repo` in the `owner` parameter position, silently disabling duplicate task code detection.
 - **Wrong Owner Attribution**: Fixed `handoff.manage.ts` that was storing the repo name (`owner: repo`) instead of the actual owner (`owner: owner`) in task comments during claim operations.
 
+## [0.18.6] - 2026-06-23
+
+### Changed
+
+- **Owner Field Descriptions**: Updated all 20 `owner` field descriptions in MCP tool definitions to explicitly warn agents NOT to use their agent name as the owner. Added "Owner Rule (CRITICAL)" section to server instructions with examples and violation consequences. Added warning log when owner is inferred from session.
+
 ## [0.18.5] - 2026-06-23
 
 ### Fixed

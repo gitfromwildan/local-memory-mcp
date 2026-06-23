@@ -14,6 +14,19 @@ All data (memories, tasks, handoffs, claims) is scoped by **owner/repo**:
 
 Pass both `owner` and `repo` whenever a tool requires them. The `owner/repo` pair forms the unique data boundary.
 
+### Owner Rule (CRITICAL)
+
+The `owner` field MUST be the GitHub username or organization that OWNS the repository. For example:
+
+- Repo `vheins/sentinel-agent` → owner=`vheins`
+- Repo `my-org/my-project` → owner=`my-org`
+
+NEVER use the agent's name (e.g., `sentinel`, `test-executor`, `claude`) as the owner.
+NEVER guess the owner from the working directory path.
+If unsure, use `owner/repo` format for the `repo` parameter (e.g., `repo='vheins/sentinel-agent'`) — the server will extract the owner automatically.
+
+Violation: tasks created with a wrong owner will be invisible to other agents querying with the correct owner.
+
 ## Session Start Mode
 
 Entry=orient → hydrate → ready Guard: S(N) req S(N-1)✅

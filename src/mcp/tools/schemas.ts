@@ -624,7 +624,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name. Optional when a single MCP root is active." },
 				objective: { type: "string", minLength: 5, description: "Question or synthesis objective." },
 				current_file_path: {
@@ -675,7 +679,8 @@ export const TOOL_DEFINITIONS = [
 			properties: {
 				owner: {
 					type: "string",
-					description: "Organization/namespace (e.g., GitHub org or username)"
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
 				},
 				repo: {
 					type: "string",
@@ -753,7 +758,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository name" },
 				id: { type: "string", format: "uuid", description: "Task ID (optional if task_code is provided)" },
 				task_code: { type: "string", description: "Task code (e.g. TASK-001) (optional if id is provided)" },
@@ -819,7 +828,11 @@ export const TOOL_DEFINITIONS = [
 				scope: {
 					type: "object",
 					properties: {
-						owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+						owner: {
+							type: "string",
+							description:
+								"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+						},
 						repo: { type: "string", description: "Repository/project name" },
 						branch: { type: "string", description: "Git branch this memory relates to" },
 						folder: { type: "string", description: "Subdirectory within the repo" },
@@ -868,7 +881,11 @@ export const TOOL_DEFINITIONS = [
 							scope: {
 								type: "object",
 								properties: {
-									owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+									owner: {
+										type: "string",
+										description:
+											"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+									},
 									repo: { type: "string", description: "Repository/project name" },
 									branch: { type: "string", description: "Git branch this memory relates to" },
 									folder: { type: "string", description: "Subdirectory within the repo" },
@@ -1012,7 +1029,11 @@ export const TOOL_DEFINITIONS = [
 					description: "Search keyword to match against memory titles and content"
 				},
 				prompt: { type: "string", description: "Natural language prompt for semantic search" },
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name" },
 				current_tags: {
 					type: "array",
@@ -1040,7 +1061,11 @@ export const TOOL_DEFINITIONS = [
 				scope: {
 					type: "object",
 					properties: {
-						owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+						owner: {
+							type: "string",
+							description:
+								"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+						},
 						repo: { type: "string", description: "Repository/project name" },
 						branch: { type: "string", description: "Git branch filter" },
 						folder: { type: "string", description: "Subdirectory filter" },
@@ -1096,7 +1121,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name" },
 				signals: {
 					type: "array",
@@ -1226,7 +1255,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name (required)" },
 				limit: {
 					type: "number",
@@ -1301,7 +1334,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name" },
 				task_code: { type: "string", description: "Unique task code (e.g. TASK-001) (Required for single task)" },
 				phase: { type: "string", description: "Project phase (Required for single task)" },
@@ -1420,7 +1457,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository name" },
 				id: { type: "string", format: "uuid", description: "Task ID (for single update)" },
 				ids: { type: "array", items: { type: "string", format: "uuid" }, description: "Task IDs (for bulk update)" },
@@ -1517,7 +1558,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository name" },
 				id: {
 					type: "string",
@@ -1556,7 +1601,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: {
 					type: "string",
 					description: "Repository/project name (required)"
@@ -1636,7 +1685,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name" },
 				query: {
 					type: "string",
@@ -1696,7 +1749,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name" },
 				from_agent: { type: "string", description: "Agent creating the handoff" },
 				to_agent: { type: "string", description: "Optional target agent" },
@@ -1774,7 +1831,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name" },
 				status: { type: "string", enum: ["pending", "accepted", "rejected", "expired"] },
 				from_agent: { type: "string" },
@@ -1827,7 +1888,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name" },
 				task_id: {
 					type: "string",
@@ -1872,7 +1937,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository/project name" },
 				agent: { type: "string", description: "Optional agent filter" },
 				active_only: { type: "boolean", description: "When true, return only unreleased claims" },
@@ -1921,7 +1990,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				repo: { type: "string", description: "Repository name" },
 				task_id: {
 					type: "string",
@@ -1960,7 +2033,11 @@ export const TOOL_DEFINITIONS = [
 		inputSchema: {
 			type: "object",
 			properties: {
-				owner: { type: "string", description: "Organization/namespace (e.g., GitHub org or username)" },
+				owner: {
+					type: "string",
+					description:
+						"GitHub repository owner (username or organization). For repo 'vheins/my-repo', owner='vheins'. CRITICAL: this is the GitHub owner, NOT the agent name. Do NOT use the calling agent's name."
+				},
 				name: { type: "string", minLength: 3, maxLength: 255, description: "Human-readable standard name" },
 				content: {
 					type: "string",

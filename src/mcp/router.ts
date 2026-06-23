@@ -431,6 +431,11 @@ function normalizeToolArguments(args: unknown, session?: SessionContext): Record
 		const repoVal = (nextArgs.repo as string) || "";
 		const parsed = parseRepoInput(repoVal, undefined);
 		nextArgs.owner = parsed.owner || inferOwnerFromSession(session) || "";
+		if (nextArgs.owner && !repoVal.includes("/")) {
+			console.warn(
+				`[router] owner inferred from session (${nextArgs.owner}) — may be incorrect. Agents should pass explicit owner/repo.`
+			);
+		}
 	}
 
 	if (scope && !scope.owner) {
