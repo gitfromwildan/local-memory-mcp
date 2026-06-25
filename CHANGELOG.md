@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Argument Order Bug**: Fixed `isTaskCodeDuplicate` call in `task.manage.ts` that was passing `repo` in the `owner` parameter position, silently disabling duplicate task code detection.
 - **Wrong Owner Attribution**: Fixed `handoff.manage.ts` that was storing the repo name (`owner: repo`) instead of the actual owner (`owner: owner`) in task comments during claim operations.
 
+## [0.18.7] - 2026-06-23
+
+### Fixed
+
+- **Memory Entity Owner Fallback**: Added conditional owner filtering in `searchByRepo()`, `getRecentMemories()`, `getTotalCount()`, and `getAllMemoriesWithStats()` — same fix pattern as task entity. Methods now skip the `owner = ?` clause when owner is empty, preventing cross-owner invisibility.
+
+### Changed
+
+- **Memory Entity**: All 4 list/query methods now handle empty owner consistently, matching the task entity pattern.
+
 ## [0.18.6] - 2026-06-23
 
 ### Changed

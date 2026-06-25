@@ -176,10 +176,11 @@ export class MemoryEntity extends BaseEntity {
 
 	searchByRepo(owner: string, repo: string, query: string = "", type?: string, limit = 5): MemoryEntry[] {
 		const now = new Date().toISOString();
-
-		let sql =
-			"SELECT * FROM memories WHERE owner = ? AND repo = ? AND (content LIKE ? OR title LIKE ? OR tags LIKE ?) AND status = 'active' AND (expires_at IS NULL OR expires_at > ?)";
-		const params: (string | number)[] = [owner, repo, `%${query}%`, `%${query}%`, `%${query}%`, now];
+		const ownerClause = owner ? "owner = ? AND " : "";
+		let sql = `SELECT * FROM memories WHERE ${ownerClause}repo = ? AND (content LIKE ? OR title LIKE ? OR tags LIKE ?) AND status = 'active' AND (expires_at IS NULL OR expires_at > ?)`;
+		const params: (string | number)[] = owner
+			? [owner, repo, `%${query}%`, `%${query}%`, `%${query}%`, now]
+			: [repo, `%${query}%`, `%${query}%`, `%${query}%`, now];
 
 		if (type) {
 			sql += " AND type = ?";
@@ -302,8 +303,9 @@ export class MemoryEntity extends BaseEntity {
 		excludeTypes: string[] = [],
 		sortOrder: "ASC" | "DESC" = "DESC"
 	): MemoryEntry[] {
-		let query = "SELECT * FROM memories WHERE owner = ? AND repo = ?";
-		const params: (string | number)[] = [owner, repo];
+		const ownerClause = owner ? "owner = ? AND " : "";
+		let query = `SELECT * FROM memories WHERE ${ownerClause}repo = ?`;
+		const params: (string | number)[] = owner ? [owner, repo] : [repo];
 
 		if (!includeArchived) {
 			query += " AND status = 'active'";
@@ -322,8 +324,9 @@ export class MemoryEntity extends BaseEntity {
 	}
 
 	getTotalCount(owner: string, repo: string, includeArchived = false, excludeTypes: string[] = []): number {
-		let sql = "SELECT COUNT(*) as count FROM memories WHERE owner = ? AND repo = ?";
-		const params: (string | number)[] = [owner, repo];
+		const ownerClause = owner ? "owner = ? AND " : "";
+		let sql = `SELECT COUNT(*) as count FROM memories WHERE ${ownerClause}repo = ?`;
+		const params: (string | number)[] = owner ? [owner, repo] : [repo];
 
 		if (!includeArchived) sql += " AND status = 'active'";
 
@@ -367,9 +370,10 @@ export class MemoryEntity extends BaseEntity {
 	}
 
 	getAllMemoriesWithStats(owner: string, repo: string): (MemoryEntry & { recall_rate: number })[] {
+		const ownerClause = owner ? "owner = ? AND " : "";
 		const rows = this.all<MemoryRow & { recall_rate: number }>(
-			`SELECT *, CASE WHEN hit_count > 0 THEN CAST(recall_count AS REAL) / hit_count ELSE 0 END AS recall_rate FROM memories WHERE owner = ? AND repo = ? ORDER BY created_at DESC`,
-			[owner, repo]
+			`SELECT *, CASE WHEN hit_count > 0 THEN CAST(recall_count AS REAL) / hit_count ELSE 0 END AS recall_rate FROM memories WHERE ${ownerClause}repo = ? ORDER BY created_at DESC`,
+			owner ? [owner, repo] : [repo]
 		);
 		return rows.map((row) => ({
 			...this.rowToMemoryEntry(row),
