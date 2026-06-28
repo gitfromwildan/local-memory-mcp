@@ -205,16 +205,7 @@ export async function archiveTaskToMemory(taskId: string, repo: string, storage:
 
 export async function handleTaskList(args: unknown, storage: SQLiteStore) {
 	const validated = TaskListSchema.parse(args);
-	const {
-		owner,
-		repo,
-		status = "backlog,pending,in_progress,blocked",
-		phase,
-		query,
-		limit,
-		offset,
-		structured: isStructuredRequest = false
-	} = validated;
+	const { owner, repo, status, phase, query, limit, offset, structured: isStructuredRequest = false } = validated;
 
 	let statuses: string[] = [];
 	if (status !== "all") {

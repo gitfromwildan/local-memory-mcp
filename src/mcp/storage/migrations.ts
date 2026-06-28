@@ -97,7 +97,6 @@ export class MigrationManager {
       );
 
       CREATE INDEX IF NOT EXISTS idx_tasks_repo ON tasks(repo);
-      CREATE INDEX IF NOT EXISTS idx_tasks_code ON tasks(task_code);
       CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
       CREATE INDEX IF NOT EXISTS idx_tasks_phase ON tasks(phase);
       CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);
@@ -403,52 +402,40 @@ export class MigrationManager {
       CREATE INDEX IF NOT EXISTS idx_coding_standards_hit_count ON coding_standards(hit_count);
     `);
 
-		try {
-			this.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_code_owner_repo ON tasks(owner, repo, task_code);`);
-		} catch {
-			// Deduplicate: for each duplicate (owner, repo, task_code), keep the row with the latest updated_at
-			const dupRows = this.all(`
-				SELECT task_code, owner, repo, COUNT(*) as cnt
-				FROM tasks
-				GROUP BY owner, repo, task_code
-				HAVING cnt > 1
-			`) as unknown as Array<{ task_code: string; owner: string; repo: string; cnt: number }>;
+		// Proactively deduplicate before creating unique index
+		const dupRows = this.all(`
+			SELECT owner, repo, task_code, COUNT(*) as cnt
+			FROM tasks
+			GROUP BY owner, repo, task_code
+			HAVING cnt > 1
+		`) as unknown as Array<{ owner: string; repo: string; task_code: string; cnt: number }>;
 
-			if (dupRows.length > 0) {
-				console.log(`Found ${dupRows.length} duplicate task_code(s). Deduplicating...`);
-				for (const dup of dupRows) {
-					// Keep the row with the latest updated_at, delete the rest
-					// Use subquery to find IDs to delete: all rows for this (owner,repo,task_code) EXCEPT the latest
-					const idsToDelete = this.all(
-						`SELECT t1.id FROM tasks t1
-						 WHERE t1.owner = ? AND t1.repo = ? AND t1.task_code = ?
-						 AND t1.id != (
-							 SELECT t2.id FROM tasks t2
-							 WHERE t2.owner = ? AND t2.repo = ? AND t2.task_code = ?
-							 ORDER BY t2.updated_at DESC
-							 LIMIT 1
-						 )`,
-						dup.owner,
-						dup.repo,
-						dup.task_code,
-						dup.owner,
-						dup.repo,
-						dup.task_code
-					) as unknown as Array<{ id: string }>;
+		if (dupRows.length > 0) {
+			console.log(`Found ${dupRows.length} duplicate task_code(s). Deduplicating by suffix...`);
+			for (const dup of dupRows) {
+				// Keep the oldest row (by created_at ASC, id ASC as tie-breaker), suffix the rest
+				const rows = this.all(
+					`SELECT id, task_code, created_at FROM tasks
+					 WHERE owner = ? AND repo = ? AND task_code = ?
+					 ORDER BY created_at ASC, id ASC`,
+					dup.owner,
+					dup.repo,
+					dup.task_code
+				) as unknown as Array<{ id: string; task_code: string; created_at: string }>;
 
-					for (const row of idsToDelete) {
-						// Delete comments first (FK cascade support)
-						this.run("DELETE FROM task_comments WHERE task_id = ?", row.id);
-						this.run("DELETE FROM tasks WHERE id = ?", row.id);
-					}
-					console.log(`  Deduplicated ${dup.task_code}: kept 1, removed ${idsToDelete.length}`);
+				for (let i = 1; i < rows.length; i++) {
+					const newCode = `${dup.task_code}-${i + 1}`;
+					this.run("UPDATE tasks SET task_code = ? WHERE id = ?", newCode, rows[i].id);
 				}
+				console.log(`  Deduplicated ${dup.task_code}: kept 1 (${rows[0].id}), renamed ${rows.length - 1} rows`);
 			}
-
-			// Retry creating the unique index
-			this.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_code_owner_repo ON tasks(owner, repo, task_code);`);
-			console.log("UNIQUE INDEX on (owner, repo, task_code) created after deduplication.");
 		}
+
+		// Create the unique index (should succeed since duplicates are removed)
+		this.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_code_owner_repo ON tasks(owner, repo, task_code);`);
+
+		// Drop the now-redundant single-column index — the composite index covers task_code lookups
+		this.exec("DROP INDEX IF EXISTS idx_tasks_code;");
 
 		try {
 			this.run("UPDATE tasks SET task_code = substr(id, 1, 8) WHERE task_code IS NULL");

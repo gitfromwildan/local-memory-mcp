@@ -176,7 +176,7 @@ export async function handleTaskClaim(args: unknown, storage: SQLiteStore) {
 
 	let taskId = task_id;
 	let resolvedTaskCode: string;
-	let task: import("../types").Task | null = null;
+	let task: import("../types").Task | null;
 
 	if (taskId) {
 		task = storage.tasks.getTaskById(taskId);

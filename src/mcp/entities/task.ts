@@ -430,10 +430,32 @@ export class TaskEntity extends BaseEntity {
 		return new Set(rows.map((r) => r.task_code));
 	}
 
+	/**
+	 * Bulk inserts tasks into the database within a single transaction.
+	 * Pre-deduplicates against existing task_codes before the transaction.
+	 * Rows whose task_code already exists in the DB are silently skipped (skip-and-continue).
+	 * The per-row INSERT has no try/catch since all rows are pre-validated.
+	 *
+	 * @param tasks - Array of tasks to insert
+	 * @returns Number of tasks actually inserted (excluding skipped duplicates)
+	 */
 	bulkInsertTasks(tasks: Task[]): number {
+		if (tasks.length === 0) return 0;
+
+		const owner = tasks[0].owner || "";
+		const repo = tasks[0].repo;
+
+		// Pre-deduplicate against existing task codes before the transaction
+		const codes = tasks.map((t) => t.task_code);
+		const existingCodes = this.getExistingTaskCodes(owner, repo, codes);
+
 		return this.transaction(() => {
 			let count = 0;
 			for (const task of tasks) {
+				// Skip rows whose task_code already exists in the database
+				if (existingCodes.has(task.task_code)) {
+					continue;
+				}
 				this.run(
 					`INSERT INTO tasks (
 						id, repo, owner, task_code, phase, title, description, status, priority,

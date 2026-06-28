@@ -82,9 +82,9 @@ export class TasksController {
 		try {
 			await db.refresh();
 			const attributes = getAttributes(req);
-			const { repo, task_code, title } = attributes;
+			const { repo, task_code, title, owner } = attributes;
 			if (!repo || !task_code || !title) return res.status(400).json(jsonApiError("Required fields missing", 400));
-			if (db.tasks.isTaskCodeDuplicate("", repo, task_code))
+			if (db.tasks.isTaskCodeDuplicate(owner || "", repo, task_code))
 				return res.status(400).json(jsonApiError("Duplicate task_code", 400));
 			const id = randomUUID();
 			await db.withWrite(() => {

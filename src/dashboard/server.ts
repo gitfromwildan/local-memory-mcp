@@ -23,7 +23,8 @@ try {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3456;
+const PORT = Number(process.env.PORT) || 3456;
+const HOST = process.env.DASHBOARD_HOST || "127.0.0.1";
 
 // --- Middleware ---
 app.use(express.json({ limit: process.env.DASHBOARD_JSON_LIMIT || "50mb" }));
@@ -117,8 +118,17 @@ if (process.env.DASHBOARD_ENABLE_MCP === "true") {
 }
 
 function startServer() {
-	const server = app.listen(PORT, () => {
-		console.log(`${new Date().toISOString()} DASHBOARD_STARTING v${pkg.version} on port ${PORT}`);
+	const server = app.listen(PORT, HOST, () => {
+		const addr = server.address();
+		const bindAddr = typeof addr === "string" ? addr : (addr?.address ?? HOST);
+		if (bindAddr !== "127.0.0.1" && bindAddr !== "::1") {
+			logger.warn("Dashboard bound to non-loopback address — access is exposed on the network", {
+				address: bindAddr,
+				port: PORT,
+				suggestion: "Set DASHBOARD_HOST=127.0.0.1 to restrict to localhost"
+			});
+		}
+		console.log(`${new Date().toISOString()} DASHBOARD_STARTING v${pkg.version} on ${bindAddr}:${PORT}`);
 	});
 
 	server.on("error", (err: NodeJS.ErrnoException) => {
