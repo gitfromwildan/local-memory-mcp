@@ -232,6 +232,164 @@ describe("Task Status Transitions", () => {
 		expect(db.tasks.getTaskById(task2.id)?.status).toBe("blocked");
 	});
 
+	it("should block completing parent task with incomplete children", async () => {
+		await createTask("PARENT-001", "pending");
+		const parent = db.tasks.getTaskByCode("test", REPO, "PARENT-001")!;
+
+		// Move parent to in_progress
+		await handleTaskUpdate(
+			{
+				owner: "test",
+				repo: REPO,
+				id: parent.id,
+				status: "in_progress",
+				comment: "starting parent",
+				agent: "test-agent",
+				role: "test-role"
+			},
+			db,
+			mockVectors
+		);
+
+		// Create child tasks
+		await handleTaskCreate(
+			{
+				repo: REPO,
+				owner: "test",
+				task_code: "CHILD-001",
+				phase: "test",
+				title: "Child Task 1",
+				description: "Child task 1",
+				status: "pending",
+				parent_id: parent.id,
+				agent: "test-agent",
+				role: "test-role"
+			},
+			db
+		);
+
+		await handleTaskCreate(
+			{
+				repo: REPO,
+				owner: "test",
+				task_code: "CHILD-002",
+				phase: "test",
+				title: "Child Task 2",
+				description: "Child task 2",
+				status: "pending",
+				parent_id: parent.id,
+				agent: "test-agent",
+				role: "test-role"
+			},
+			db
+		);
+
+		await expect(
+			handleTaskUpdate(
+				{
+					owner: "test",
+					repo: REPO,
+					id: parent.id,
+					status: "completed",
+					comment: "trying to finish parent",
+					est_tokens: 200,
+					agent: "test-agent",
+					role: "test-role"
+				},
+				db,
+				mockVectors
+			)
+		).rejects.toThrow(/incomplete child/);
+	});
+
+	it("should allow completing parent task when all children are completed", async () => {
+		await createTask("PARENT-002", "pending");
+		const parent = db.tasks.getTaskByCode("test", REPO, "PARENT-002")!;
+
+		// Move parent to in_progress
+		await handleTaskUpdate(
+			{
+				owner: "test",
+				repo: REPO,
+				id: parent.id,
+				status: "in_progress",
+				comment: "starting parent",
+				agent: "test-agent",
+				role: "test-role"
+			},
+			db,
+			mockVectors
+		);
+
+		// Create child task
+		await handleTaskCreate(
+			{
+				repo: REPO,
+				owner: "test",
+				task_code: "CHILD-003",
+				phase: "test",
+				title: "Child Task 3",
+				description: "Child task 3",
+				status: "pending",
+				parent_id: parent.id,
+				agent: "test-agent",
+				role: "test-role"
+			},
+			db
+		);
+
+		const child = db.tasks.getTaskByCode("test", REPO, "CHILD-003")!;
+
+		// Move child to in_progress then complete
+		await handleTaskUpdate(
+			{
+				owner: "test",
+				repo: REPO,
+				id: child.id,
+				status: "in_progress",
+				comment: "starting child",
+				agent: "test-agent",
+				role: "test-role"
+			},
+			db,
+			mockVectors
+		);
+
+		await handleTaskUpdate(
+			{
+				owner: "test",
+				repo: REPO,
+				id: child.id,
+				status: "completed",
+				comment: "child done",
+				est_tokens: 100,
+				agent: "test-agent",
+				role: "test-role"
+			},
+			db,
+			mockVectors
+		);
+
+		// Complete parent — should succeed now
+		await handleTaskUpdate(
+			{
+				owner: "test",
+				repo: REPO,
+				id: parent.id,
+				status: "completed",
+				comment: "parent done, all children completed",
+				est_tokens: 200,
+				agent: "test-agent",
+				role: "test-role"
+			},
+			db,
+			mockVectors
+		);
+
+		const updatedParent = db.tasks.getTaskById(parent.id);
+		expect(updatedParent?.status).toBe("completed");
+	});
+
 	it("should block transition from blocked to completed", async () => {
 		await createTask("TASK-001", "pending");
 		const task = db.tasks.getTasksByRepo("test", REPO)[0];

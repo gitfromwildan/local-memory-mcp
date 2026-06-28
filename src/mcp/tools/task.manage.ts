@@ -645,6 +645,15 @@ export async function handleTaskUpdate(args: unknown, storage: SQLiteStore, vect
 			if (updates.est_tokens === undefined) {
 				throw new Error("est_tokens is required when changing task status to completed");
 			}
+
+			const children = storage.tasks.getChildrenByParentId(targetId);
+			const incompleteChildren = children.filter((c) => c.status !== "completed");
+			if (incompleteChildren.length > 0) {
+				const childList = incompleteChildren.map((c) => `[${c.task_code}] ${c.title} (${c.status})`).join("; ");
+				throw new Error(
+					`Cannot complete task [${existingTask.task_code}] "${existingTask.title}" — it has ${incompleteChildren.length} incomplete child task(s). Complete the following child task(s) first: ${childList}`
+				);
+			}
 		}
 
 		if (updates.task_code && storage.tasks.isTaskCodeDuplicate(owner, repo, updates.task_code, targetId)) {
